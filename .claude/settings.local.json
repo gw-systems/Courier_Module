@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pytest:*)",
+      "Bash(pip install:*)",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(grep:*)",
+      "Bash(if [ -f .env ])",
+      "Bash(then echo \"File exists\")",
+      "Bash(cat:*)",
+      "Bash(else echo \"File does not exist\")",
+      "Bash(fi)"
+    ]
+  }
+}

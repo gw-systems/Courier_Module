@@ -16,28 +16,42 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "pincode_master.csv"
 
 def initialize_pincode_lookup():
     """
-    Loads the CSV into a dictionary. 
+    Loads the CSV into a dictionary.
     Added .drop_duplicates() to ensure the index is unique.
     """
     if not os.path.exists(DATA_PATH):
         print(f"CRITICAL ERROR: Database not found at {DATA_PATH}")
         return {}
-    
-    # 1. Load data
-    temp_df = pd.read_csv(DATA_PATH, usecols=['pincode', 'office', 'state', 'district'])
-    temp_df.columns = temp_df.columns.str.strip()
-    
-    # 2. Industry-Grade Data Cleaning
-    # Remove duplicates based on the 'pincode' column, keeping the first occurrence
-    initial_count = len(temp_df)
-    temp_df = temp_df.drop_duplicates(subset=['pincode'], keep='first')
-    final_count = len(temp_df)
-    
-    if initial_count > final_count:
-        print(f"INFO: Removed {initial_count - final_count} duplicate pincodes from database.")
 
-    # 3. Convert to dictionary
-    return temp_df.set_index('pincode').to_dict('index')
+    try:
+        # 1. Load data
+        temp_df = pd.read_csv(DATA_PATH, usecols=['pincode', 'office', 'state', 'district'])
+        temp_df.columns = temp_df.columns.str.strip()
+
+        # 2. Industry-Grade Data Cleaning
+        # Remove duplicates based on the 'pincode' column, keeping the first occurrence
+        initial_count = len(temp_df)
+        temp_df = temp_df.drop_duplicates(subset=['pincode'], keep='first')
+        final_count = len(temp_df)
+
+        if initial_count > final_count:
+            print(f"INFO: Removed {initial_count - final_count} duplicate pincodes from database.")
+
+        # 3. Convert to dictionary
+        return temp_df.set_index('pincode').to_dict('index')
+
+    except FileNotFoundError:
+        print(f"CRITICAL ERROR: Pincode database missing at {DATA_PATH}")
+        raise RuntimeError(f"Required database file not found: {DATA_PATH}")
+    except pd.errors.ParserError as e:
+        print(f"CRITICAL ERROR: Corrupted CSV file: {e}")
+        raise RuntimeError(f"Failed to parse pincode database: {e}")
+    except KeyError as e:
+        print(f"CRITICAL ERROR: Missing required column in CSV: {e}")
+        raise RuntimeError(f"Database schema error - missing column: {e}")
+    except Exception as e:
+        print(f"CRITICAL ERROR: Unexpected error loading pincode database: {e}")
+        raise RuntimeError(f"Failed to initialize pincode lookup: {e}")
 
 # Initialize the global lookup table
 PINCODE_LOOKUP = initialize_pincode_lookup()

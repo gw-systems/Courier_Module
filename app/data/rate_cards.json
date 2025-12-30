@@ -1,66 +1,200 @@
 [
-  {
-    "carrier_name": "Shadowfax Surface",
-    "mode": "Surface",
-    "min_weight": 0.5,
-    "forward_rates": { "z_a": 29.43, "z_b": 32.1, "z_c": 38.79, "z_d": 44.14, "z_f": 56.18 },
-    "additional_rates": { "z_a": 25.41, "z_b": 28.09, "z_c": 33.44, "z_d": 36.11, "z_f": 40.13 },
-    "cod_fixed": 27.69, "cod_percent": 0.0188
-  },
-  {
-    "carrier_name": "Ekart Surface",
-    "mode": "Surface",
-    "min_weight": 0.5,
-    "forward_rates": { "z_a": 29.96, "z_b": 34.24, "z_c": 37.45, "z_d": 42.8, "z_f": 63.13 },
-    "additional_rates": { "z_a": 18.19, "z_b": 20.33, "z_c": 24.61, "z_d": 29.96, "z_f": 53.5 },
-    "cod_fixed": 31.99, "cod_percent": 0.014
-  },
-  {
-    "carrier_name": "Delhivery Surface",
-    "mode": "Surface",
-    "min_weight": 0.5,
-    "forward_rates": { "z_a": 28.89, "z_b": 32.1, "z_c": 38.52, "z_d": 43.87, "z_f": 73.83 },
-    "additional_rates": { "z_a": 27.82, "z_b": 34.24, "z_c": 38.52, "z_d": 44.94, "z_f": 71.69 },
-    "cod_fixed": 35.68, "cod_percent": 0.015
-  },
-  {
-    "carrier_name": "ATS Surface",
-    "mode": "Surface",
-    "min_weight": 0.5,
-    "forward_rates": { "z_a": 29.96, "z_b": 34.24, "z_c": 39.59, "z_d": 43.87, "z_f": 62.06 },
-    "additional_rates": { "z_a": 25.68, "z_b": 27.82, "z_c": 33.17, "z_d": 36.38, "z_f": 36.38 },
-    "cod_fixed": 31.99, "cod_percent": 0.0115
-  },
-  {
-    "carrier_name": "DTDC Surface",
-    "mode": "Surface",
-    "min_weight": 0.5,
-    "forward_rates": { "z_a": 34.24, "z_b": 38.52, "z_c": 44.94, "z_d": 51.36, "z_f": 63.13 },
-    "additional_rates": { "z_a": 17.12, "z_b": 20.33, "z_c": 23.54, "z_d": 25.68, "z_f": 32.1 },
-    "cod_fixed": 44.29, "cod_percent": 0.016
-  },
-  {
-    "carrier_name": "Ekart Air",
-    "mode": "Air",
-    "min_weight": 0.5,
-    "forward_rates": { "z_a": 29.96, "z_b": 34.24, "z_c": 58.85, "z_d": 60.99, "z_f": 63.13 },
-    "additional_rates": { "z_a": 18.19, "z_b": 20.33, "z_c": 51.36, "z_d": 53.5, "z_f": 53.5 },
-    "cod_fixed": 31.99, "cod_percent": 0.014
-  },
-  {
-    "carrier_name": "Delhivery Air",
-    "mode": "Air",
-    "min_weight": 0.5,
-    "forward_rates": { "z_a": 32.1, "z_b": 36.38, "z_c": 52.43, "z_d": 62.06, "z_f": 80.25 },
-    "additional_rates": { "z_a": 32.1, "z_b": 36.38, "z_c": 52.43, "z_d": 62.06, "z_f": 80.25 },
-    "cod_fixed": 39.37, "cod_percent": 0.0175
-  },
-  {
-    "carrier_name": "DTDC Air",
-    "mode": "Air",
-    "min_weight": 0.5,
-    "forward_rates": { "z_a": 34.24, "z_b": 38.52, "z_c": 59.92, "z_d": 64.2, "z_f": 79.18 },
-    "additional_rates": { "z_a": 17.12, "z_b": 20.33, "z_c": 47.08, "z_d": 49.22, "z_f": 57.78 },
-    "cod_fixed": 44.29, "cod_percent": 0.016
-  }
+    {
+        "carrier_name": "Shadowfax Surface",
+        "mode": "Surface",
+        "min_weight": 0.5,
+        "forward_rates": {
+            "z_a": 25,
+            "z_b": 32.1,
+            "z_c": 38.79,
+            "z_d": 44.14,
+            "z_f": 56.18
+        },
+        "additional_rates": {
+            "z_a": 25.41,
+            "z_b": 28.09,
+            "z_c": 33.44,
+            "z_d": 36.11,
+            "z_f": 40.13
+        },
+        "cod_fixed": 27.69,
+        "cod_percent": 0.0188,
+        "active": true
+    },
+    {
+        "carrier_name": "Ekart Surface",
+        "mode": "Surface",
+        "min_weight": 0.5,
+        "forward_rates": {
+            "z_a": 29.96,
+            "z_b": 34.24,
+            "z_c": 37.45,
+            "z_d": 42.8,
+            "z_f": 63.13
+        },
+        "additional_rates": {
+            "z_a": 18.19,
+            "z_b": 20.33,
+            "z_c": 24.61,
+            "z_d": 29.96,
+            "z_f": 53.5
+        },
+        "cod_fixed": 31.99,
+        "cod_percent": 0.014,
+        "active": true
+    },
+    {
+        "carrier_name": "Delhivery Surface",
+        "mode": "Surface",
+        "min_weight": 0.5,
+        "forward_rates": {
+            "z_a": 28.89,
+            "z_b": 32.1,
+            "z_c": 38.52,
+            "z_d": 43.87,
+            "z_f": 73.83
+        },
+        "additional_rates": {
+            "z_a": 27.82,
+            "z_b": 34.24,
+            "z_c": 38.52,
+            "z_d": 44.94,
+            "z_f": 71.69
+        },
+        "cod_fixed": 35.68,
+        "cod_percent": 0.015,
+        "active": true
+    },
+    {
+        "carrier_name": "ATS Surface",
+        "mode": "Surface",
+        "min_weight": 0.5,
+        "forward_rates": {
+            "z_a": 29.96,
+            "z_b": 34.24,
+            "z_c": 39.59,
+            "z_d": 43.87,
+            "z_f": 62.06
+        },
+        "additional_rates": {
+            "z_a": 25.68,
+            "z_b": 27.82,
+            "z_c": 33.17,
+            "z_d": 36.38,
+            "z_f": 36.38
+        },
+        "cod_fixed": 31.99,
+        "cod_percent": 0.0115,
+        "active": false
+    },
+    {
+        "carrier_name": "DTDC Surface",
+        "mode": "Surface",
+        "min_weight": 0.5,
+        "forward_rates": {
+            "z_a": 34.24,
+            "z_b": 38.52,
+            "z_c": 44.94,
+            "z_d": 51.36,
+            "z_f": 63.13
+        },
+        "additional_rates": {
+            "z_a": 17.12,
+            "z_b": 20.33,
+            "z_c": 23.54,
+            "z_d": 25.68,
+            "z_f": 32.1
+        },
+        "cod_fixed": 44.29,
+        "cod_percent": 0.016,
+        "active": false
+    },
+    {
+        "carrier_name": "Ekart Air",
+        "mode": "Air",
+        "min_weight": 0.5,
+        "forward_rates": {
+            "z_a": 29.96,
+            "z_b": 34.24,
+            "z_c": 58.85,
+            "z_d": 60.99,
+            "z_f": 63.13
+        },
+        "additional_rates": {
+            "z_a": 18.19,
+            "z_b": 20.33,
+            "z_c": 51.36,
+            "z_d": 53.5,
+            "z_f": 53.5
+        },
+        "cod_fixed": 31.99,
+        "cod_percent": 0.014,
+        "active": true
+    },
+    {
+        "carrier_name": "Delhivery Air",
+        "mode": "Air",
+        "min_weight": 0.5,
+        "forward_rates": {
+            "z_a": 32.1,
+            "z_b": 36.38,
+            "z_c": 52.43,
+            "z_d": 62.06,
+            "z_f": 80.25
+        },
+        "additional_rates": {
+            "z_a": 32.1,
+            "z_b": 36.38,
+            "z_c": 52.43,
+            "z_d": 62.06,
+            "z_f": 80.25
+        },
+        "cod_fixed": 39.37,
+        "cod_percent": 0.0175,
+        "active": true
+    },
+    {
+        "carrier_name": "DTDC Air",
+        "mode": "Air",
+        "min_weight": 0.5,
+        "forward_rates": {
+            "z_a": 34.24,
+            "z_b": 38.52,
+            "z_c": 59.92,
+            "z_d": 64.2,
+            "z_f": 79.18
+        },
+        "additional_rates": {
+            "z_a": 17.12,
+            "z_b": 20.33,
+            "z_c": 47.08,
+            "z_d": 49.22,
+            "z_f": 57.78
+        },
+        "cod_fixed": 44.29,
+        "cod_percent": 0.016,
+        "active": true
+    },
+    {
+        "carrier_name": "test",
+        "mode": "Surface",
+        "min_weight": 0.5,
+        "forward_rates": {
+            "z_a": 15,
+            "z_b": 30,
+            "z_c": 45,
+            "z_d": 60,
+            "z_f": 75
+        },
+        "additional_rates": {
+            "z_a": 15,
+            "z_b": 30,
+            "z_c": 45,
+            "z_d": 60,
+            "z_f": 75
+        },
+        "cod_fixed": 0,
+        "cod_percent": 0.015,
+        "active": true
+    }
 ]

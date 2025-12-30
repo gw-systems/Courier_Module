@@ -23,11 +23,107 @@
         </div>
     </nav>
 
+    <!-- Add Carrier Modal -->
+    <div id="addCarrierModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-4">Add New Carrier</h2>
+            <form id="addCarrierForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Carrier Name *</label>
+                        <input type="text" id="new_carrier_name" required class="w-full border p-2 rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Mode *</label>
+                        <select id="new_mode" required class="w-full border p-2 rounded">
+                            <option value="Surface">Surface</option>
+                            <option value="Air">Air</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Min Weight (kg) *</label>
+                        <input type="number" step="0.1" id="new_min_weight" value="0.5" required class="w-full border p-2 rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Active</label>
+                        <input type="checkbox" id="new_active" checked class="h-5 w-5">
+                    </div>
+                </div>
+
+                <h3 class="font-semibold mt-4">Forward Rates (per zone) *</h3>
+                <div class="grid grid-cols-5 gap-2">
+                    <div>
+                        <label class="block text-xs mb-1">Zone A</label>
+                        <input type="number" step="0.01" id="new_fwd_z_a" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">Zone B</label>
+                        <input type="number" step="0.01" id="new_fwd_z_b" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">Zone C</label>
+                        <input type="number" step="0.01" id="new_fwd_z_c" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">Zone D</label>
+                        <input type="number" step="0.01" id="new_fwd_z_d" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">Zone E</label>
+                        <input type="number" step="0.01" id="new_fwd_z_f" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                </div>
+
+                <h3 class="font-semibold mt-4">Additional Rates (per zone) *</h3>
+                <div class="grid grid-cols-5 gap-2">
+                    <div>
+                        <label class="block text-xs mb-1">Zone A</label>
+                        <input type="number" step="0.01" id="new_add_z_a" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">Zone B</label>
+                        <input type="number" step="0.01" id="new_add_z_b" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">Zone C</label>
+                        <input type="number" step="0.01" id="new_add_z_c" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">Zone D</label>
+                        <input type="number" step="0.01" id="new_add_z_d" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">Zone E</label>
+                        <input type="number" step="0.01" id="new_add_z_f" required class="w-full border p-2 rounded text-sm">
+                    </div>
+                </div>
+
+                <h3 class="font-semibold mt-4">COD Configuration *</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Fixed Fee</label>
+                        <input type="number" step="0.01" id="new_cod_fixed" value="0" required class="w-full border p-2 rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Percentage (0-1)</label>
+                        <input type="number" step="0.0001" id="new_cod_percent" value="0.015" required class="w-full border p-2 rounded">
+                    </div>
+                </div>
+
+                <div class="flex space-x-2 mt-6">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Add Carrier</button>
+                    <button type="button" onclick="closeAddModal()" class="flex-1 bg-gray-300 py-2 rounded hover:bg-gray-400">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="container mx-auto p-6">
         <div class="bg-white rounded-lg shadow-md p-6 overflow-x-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-semibold text-gray-700">Carrier Rate Management</h2>
                 <div class="space-x-2">
+                    <button onclick="showAddModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Add Carrier</button>
                     <button onclick="fetchRates()" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Refresh</button>
                     <button onclick="saveRates()" class="bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700 shadow">Save All Changes</button>
                 </div>
@@ -53,6 +149,9 @@
     </div>
 
     <script>
+        // Dynamic API base URL - works in development and production
+        const API_BASE = window.location.origin;
+
         let currentRates = [];
 
         function checkLogin() {
@@ -67,7 +166,7 @@
         async function fetchRates() {
             const token = sessionStorage.getItem('admin_token');
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/admin/rates', {
+                const response = await fetch(`${API_BASE}/api/admin/rates`, {
                     headers: { 'X-Admin-Token': token }
                 });
                 if(!response.ok) throw new Error("Unauthorized");
@@ -82,11 +181,11 @@
         function renderTable() {
             const tbody = document.getElementById('rateTable');
             tbody.innerHTML = currentRates.map((c, i) => `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="p-3 font-medium">${c.carrier_name}</td>
+                <tr class="border-b hover:bg-gray-50 ${!c.active ? 'bg-gray-100 opacity-60' : ''}">
+                    <td class="p-3 font-medium ${!c.active ? 'text-gray-400' : ''}">${c.carrier_name}</td>
                     <td class="p-3 text-sm text-gray-500">${c.mode}</td>
                     <td class="p-3">
-                        <input type="checkbox" ${c.active ? 'checked' : ''} onchange="updateValue(${i}, 'active', this.checked)">
+                        <input type="checkbox" ${c.active ? 'checked' : ''} onchange="updateValue(${i}, 'active', this.checked)" class="h-5 w-5 cursor-pointer">
                     </td>
                     <td class="p-3"><input type="number" step="0.1" class="w-16 border rounded p-1" value="${c.forward_rates.z_a}" onchange="updateRate(${i}, 'z_a', this.value)"></td>
                     <td class="p-3"><input type="number" step="0.1" class="w-16 border rounded p-1" value="${c.forward_rates.z_b}" onchange="updateRate(${i}, 'z_b', this.value)"></td>
@@ -97,16 +196,20 @@
             `).join('');
         }
 
-        function updateValue(index, key, val) { currentRates[index][key] = val; }
+        function updateValue(index, key, val) {
+            currentRates[index][key] = val;
+            renderTable(); // Re-render to show visual changes
+        }
+
         function updateRate(index, zone, val) { currentRates[index].forward_rates[zone] = parseFloat(val); }
 
         async function saveRates() {
             const token = sessionStorage.getItem('admin_token');
-            const response = await fetch('http://127.0.0.1:8000/api/admin/rates/update', {
+            const response = await fetch(`${API_BASE}/api/admin/rates/update`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    'X-Admin-Token': token 
+                    'X-Admin-Token': token
                 },
                 body: JSON.stringify(currentRates)
             });
@@ -118,6 +221,66 @@
             sessionStorage.removeItem('admin_token');
             location.reload();
         }
+
+        function showAddModal() {
+            document.getElementById('addCarrierModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addCarrierModal').classList.add('hidden');
+            document.getElementById('addCarrierForm').reset();
+        }
+
+        document.getElementById('addCarrierForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newCarrier = {
+                carrier_name: document.getElementById('new_carrier_name').value,
+                mode: document.getElementById('new_mode').value,
+                min_weight: parseFloat(document.getElementById('new_min_weight').value),
+                active: document.getElementById('new_active').checked,
+                forward_rates: {
+                    z_a: parseFloat(document.getElementById('new_fwd_z_a').value),
+                    z_b: parseFloat(document.getElementById('new_fwd_z_b').value),
+                    z_c: parseFloat(document.getElementById('new_fwd_z_c').value),
+                    z_d: parseFloat(document.getElementById('new_fwd_z_d').value),
+                    z_f: parseFloat(document.getElementById('new_fwd_z_f').value)
+                },
+                additional_rates: {
+                    z_a: parseFloat(document.getElementById('new_add_z_a').value),
+                    z_b: parseFloat(document.getElementById('new_add_z_b').value),
+                    z_c: parseFloat(document.getElementById('new_add_z_c').value),
+                    z_d: parseFloat(document.getElementById('new_add_z_d').value),
+                    z_f: parseFloat(document.getElementById('new_add_z_f').value)
+                },
+                cod_fixed: parseFloat(document.getElementById('new_cod_fixed').value),
+                cod_percent: parseFloat(document.getElementById('new_cod_percent').value)
+            };
+
+            const token = sessionStorage.getItem('admin_token');
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/rates/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Token': token
+                    },
+                    body: JSON.stringify(newCarrier)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message || 'Carrier added successfully!');
+                    closeAddModal();
+                    fetchRates(); // Refresh the table
+                } else {
+                    alert('Error: ' + (data.detail || 'Failed to add carrier'));
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+            }
+        });
     </script>
 </body>
 </html>

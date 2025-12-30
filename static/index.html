@@ -66,9 +66,12 @@
     </div>
 
     <script>
+        // Dynamic API base URL - works in development and production
+        const API_BASE = window.location.origin;
+
         document.getElementById('rateForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const payload = {
                 source_pincode: parseInt(document.getElementById('source').value),
                 dest_pincode: parseInt(document.getElementById('destination').value),
@@ -79,7 +82,7 @@
             };
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/compare-rates', {
+                const response = await fetch(`${API_BASE}/compare-rates`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)

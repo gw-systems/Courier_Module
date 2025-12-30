@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 # Environments
+.env
 .venv/
 env/
 venv/
@@ -12,3 +13,9 @@ ENV/
 # Data/Temp
 .DS_Store
 *.log
+*.bak
+*.test_backup
+duplicate_pincodes_report.csv
+
+# Test cache
+.pytest_cache/
