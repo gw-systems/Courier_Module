@@ -12,7 +12,16 @@
       "Bash(then echo \"File exists\")",
       "Bash(cat:*)",
       "Bash(else echo \"File does not exist\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(taskkill:*)",
+      "Bash(exit 0)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(Get-Process python)",
+      "Bash(Select-Object Id,ProcessName,StartTime)",
+      "Bash(Format-Table:*)",
+      "Bash(netstat:*)",
+      "Bash(timeout /t 3)"
     ]
   }
 }

@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiRate Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-sm w-full">
+            <h2 class="text-2xl font-bold mb-4 text-center text-blue-700">Admin Login</h2>
+            <input type="password" id="adminToken" placeholder="Enter Admin Password" class="w-full border border-gray-300 p-3 rounded mb-4 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <button onclick="checkLogin()" class="w-full bg-blue-600 text-white py-3 rounded font-bold hover:bg-blue-700 transition">Login</button>
+        </div>
+    </div>
+
+    <!-- Main Admin Panel -->
+    <div id="adminPanel" class="hidden">
+        <!-- Header -->
+        <nav class="bg-blue-700 text-white p-4 shadow-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold">LogiRate Admin Panel</h1>
+                <div class="flex gap-3">
+                    <a href="/static/dashboard.html" class="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <button onclick="logout()" class="bg-blue-800 px-4 py-2 rounded hover:bg-blue-900 transition">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Tabs -->
+        <div class="container mx-auto mt-6">
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <div class="flex border-b">
+                    <button onclick="showTab('dashboard')" class="tab-btn active px-6 py-3 font-medium border-b-2 border-blue-600 text-blue-600" data-tab="dashboard">Dashboard</button>
+                    <button onclick="showTab('orders')" class="tab-btn px-6 py-3 font-medium text-gray-600 hover:text-blue-600" data-tab="orders">Orders</button>
+                    <button onclick="showTab('carriers')" class="tab-btn px-6 py-3 font-medium text-gray-600 hover:text-blue-600" data-tab="carriers">Carriers</button>
+                    <button onclick="showTab('settings')" class="tab-btn px-6 py-3 font-medium text-gray-600 hover:text-blue-600" data-tab="settings">Settings</button>
+                    <button onclick="showTab('analytics')" class="tab-btn px-6 py-3 font-medium text-gray-600 hover:text-blue-600" data-tab="analytics">Analytics</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="text-sm text-gray-600 mb-1">Total Orders</div>
+                        <div class="text-3xl font-bold text-blue-600" id="dash-total-orders">0</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="text-sm text-gray-600 mb-1">Booked Orders</div>
+                        <div class="text-3xl font-bold text-green-600" id="dash-booked-orders">0</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="text-sm text-gray-600 mb-1">Total Revenue</div>
+                        <div class="text-3xl font-bold text-purple-600" id="dash-revenue">₹0</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="text-sm text-gray-600 mb-1">Active Carriers</div>
+                        <div class="text-3xl font-bold text-orange-600" id="dash-carriers">0</div>
+                    </div>
+                </div>
+
+                <!-- Profit Breakdown -->
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg shadow mb-6 border border-green-200">
+                    <h3 class="text-lg font-bold mb-4 text-green-800">💰 Profit Breakdown (Booked Orders)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-xs text-gray-600 mb-1">Base Cost</div>
+                            <div class="text-xl font-bold text-gray-700" id="dash-base-cost">₹0</div>
+                            <div class="text-xs text-gray-500 mt-1">Carrier charges</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-xs text-gray-600 mb-1">Your Profit (15%)</div>
+                            <div class="text-xl font-bold text-green-600" id="dash-profit">₹0</div>
+                            <div class="text-xs text-gray-500 mt-1">Escalation margin</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-xs text-gray-600 mb-1">GST (18%)</div>
+                            <div class="text-xl font-bold text-blue-600" id="dash-gst">₹0</div>
+                            <div class="text-xs text-gray-500 mt-1">Tax amount</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-xs text-gray-600 mb-1">Profit Margin</div>
+                            <div class="text-xl font-bold text-emerald-600" id="dash-profit-percent">0%</div>
+                            <div class="text-xs text-gray-500 mt-1">Of total revenue</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-bold mb-4">Revenue by Carrier</h3>
+                        <div id="carrier-revenue-list"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-bold mb-4">Order Status Breakdown</h3>
+                        <div id="status-breakdown-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="tab-orders" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Order Management</h2>
+                        <div class="flex gap-4">
+                            <input type="text" id="search-orders" placeholder="Search..." class="border px-4 py-2 rounded">
+                            <select id="status-filter" onchange="loadOrders()" class="border px-4 py-2 rounded">
+                                <option value="">All Status</option>
+                                <option value="draft">Draft</option>
+                                <option value="pending">Pending</option>
+                                <option value="booked">Booked</option>
+                                <option value="in_transit">In Transit</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="orders-table" class="overflow-x-auto"></div>
+                </div>
+            </div>
+
+            <!-- Carriers Tab -->
+            <div id="tab-carriers" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Carrier Management</h2>
+                        <button onclick="showAddCarrierModal()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Add New Carrier</button>
+                    </div>
+                    <div id="carriers-list"></div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-2xl font-bold mb-6">System Settings</h2>
+                    <form id="settings-form" class="max-w-2xl space-y-6">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">GST Rate (%)</label>
+                                <input type="number" id="gst-rate" step="0.01" class="w-full border px-4 py-2 rounded">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Escalation Rate (%) - Profit Margin</label>
+                                <input type="number" id="escalation-rate" step="0.01" class="w-full border px-4 py-2 rounded">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Volumetric Divisor</label>
+                                <input type="number" id="volumetric-divisor" class="w-full border px-4 py-2 rounded">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Default Weight Slab (kg)</label>
+                                <input type="number" id="weight-slab" step="0.1" class="w-full border px-4 py-2 rounded">
+                            </div>
+                        </div>
+                        <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded hover:bg-green-700 font-medium">Save Settings</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Add Carrier Modal -->
+            <div id="addCarrierModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+                <div class="bg-white rounded-lg shadow-xl p-8 max-w-4xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Add New Carrier</h2>
+                        <button onclick="closeAddCarrierModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <form id="addCarrierForm" class="space-y-6">
+                        <!-- Basic Info -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Carrier Name *</label>
+                                <input type="text" id="new-carrier-name" required class="w-full border px-3 py-2 rounded" placeholder="e.g., Blue Dart">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Mode *</label>
+                                <select id="new-carrier-mode" required class="w-full border px-3 py-2 rounded">
+                                    <option value="Surface">Surface</option>
+                                    <option value="Air">Air</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Minimum Weight (kg) *</label>
+                                <input type="number" step="0.1" id="new-min-weight" required class="w-full border px-3 py-2 rounded" value="0.5">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Active</label>
+                                <select id="new-carrier-active" class="w-full border px-3 py-2 rounded">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Forward Rates -->
+                        <div class="border-t pt-4">
+                            <h3 class="font-bold mb-3">Forward Rates (₹ per 0.5kg)</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone A (Local) *</label>
+                                    <input type="number" step="0.01" id="new-fwd-z_a" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone B (Within State) *</label>
+                                    <input type="number" step="0.01" id="new-fwd-z_b" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone C (Metro) *</label>
+                                    <input type="number" step="0.01" id="new-fwd-z_c" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone D (National) *</label>
+                                    <input type="number" step="0.01" id="new-fwd-z_d" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone E (Regional) *</label>
+                                    <input type="number" step="0.01" id="new-fwd-z_e" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone F (Special) *</label>
+                                    <input type="number" step="0.01" id="new-fwd-z_f" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Weight Rates -->
+                        <div class="border-t pt-4">
+                            <h3 class="font-bold mb-3">Additional Weight Rates (₹ per 0.5kg)</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone A *</label>
+                                    <input type="number" step="0.01" id="new-add-z_a" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone B *</label>
+                                    <input type="number" step="0.01" id="new-add-z_b" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone C *</label>
+                                    <input type="number" step="0.01" id="new-add-z_c" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone D *</label>
+                                    <input type="number" step="0.01" id="new-add-z_d" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone E *</label>
+                                    <input type="number" step="0.01" id="new-add-z_e" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone F *</label>
+                                    <input type="number" step="0.01" id="new-add-z_f" required class="w-full border px-3 py-2 rounded text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- COD Charges -->
+                        <div class="border-t pt-4">
+                            <h3 class="font-bold mb-3">COD Charges</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">COD Fixed (₹) *</label>
+                                    <input type="number" step="0.01" id="new-cod-fixed" required class="w-full border px-3 py-2 rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">COD Percent (%) *</label>
+                                    <input type="number" step="0.001" id="new-cod-percent" required class="w-full border px-3 py-2 rounded" placeholder="e.g., 1.5 for 1.5%">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RTO Rates (Optional) -->
+                        <div class="border-t pt-4">
+                            <h3 class="font-bold mb-3">RTO Rates (Optional - ₹ per 0.5kg)</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone A</label>
+                                    <input type="number" step="0.01" id="new-rto-z_a" class="w-full border px-3 py-2 rounded text-sm" placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone B</label>
+                                    <input type="number" step="0.01" id="new-rto-z_b" class="w-full border px-3 py-2 rounded text-sm" placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone C</label>
+                                    <input type="number" step="0.01" id="new-rto-z_c" class="w-full border px-3 py-2 rounded text-sm" placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone D</label>
+                                    <input type="number" step="0.01" id="new-rto-z_d" class="w-full border px-3 py-2 rounded text-sm" placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone E</label>
+                                    <input type="number" step="0.01" id="new-rto-z_e" class="w-full border px-3 py-2 rounded text-sm" placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Zone F</label>
+                                    <input type="number" step="0.01" id="new-rto-z_f" class="w-full border px-3 py-2 rounded text-sm" placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3 pt-4 border-t">
+                            <button type="button" onclick="closeAddCarrierModal()" class="px-6 py-2 border rounded hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add Carrier</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Edit Order Modal -->
+            <div id="editOrderModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Edit Order</h2>
+                        <button onclick="closeEditOrderModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <form id="editOrderForm" class="space-y-4">
+                        <input type="hidden" id="edit-order-id">
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Order Number</label>
+                                <input type="text" id="edit-order-number" readonly class="w-full border px-3 py-2 rounded bg-gray-100">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Status</label>
+                                <select id="edit-status" class="w-full border px-3 py-2 rounded">
+                                    <option value="draft">Draft</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="booked">Booked</option>
+                                    <option value="in_transit">In Transit</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Sender Name</label>
+                                <input type="text" id="edit-sender-name" class="w-full border px-3 py-2 rounded">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Sender Phone</label>
+                                <input type="text" id="edit-sender-phone" class="w-full border px-3 py-2 rounded">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Sender Pincode</label>
+                            <input type="number" id="edit-sender-pincode" class="w-full border px-3 py-2 rounded">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Recipient Name</label>
+                                <input type="text" id="edit-recipient-name" class="w-full border px-3 py-2 rounded">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Recipient Contact</label>
+                                <input type="text" id="edit-recipient-contact" class="w-full border px-3 py-2 rounded">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Recipient Pincode</label>
+                            <input type="number" id="edit-recipient-pincode" class="w-full border px-3 py-2 rounded">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Recipient Address</label>
+                            <textarea id="edit-recipient-address" rows="2" class="w-full border px-3 py-2 rounded"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Selected Carrier</label>
+                                <input type="text" id="edit-carrier" class="w-full border px-3 py-2 rounded" placeholder="e.g., Blue Dart">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Mode</label>
+                                <select id="edit-mode" class="w-full border px-3 py-2 rounded">
+                                    <option value="">Not Set</option>
+                                    <option value="Surface">Surface</option>
+                                    <option value="Air">Air</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Weight (kg)</label>
+                                <input type="number" step="0.1" id="edit-weight" class="w-full border px-3 py-2 rounded">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Total Cost (₹)</label>
+                                <input type="number" step="0.01" id="edit-cost" class="w-full border px-3 py-2 rounded">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3 mt-6">
+                            <button type="button" onclick="closeEditOrderModal()" class="px-6 py-2 border rounded hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Update Order</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="tab-analytics" class="tab-content hidden">
+                <div class="space-y-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-xl font-bold mb-4">Daily Performance (Last 30 Days)</h3>
+                        <canvas id="daily-chart" height="80"></canvas>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-xl font-bold mb-4">Carrier Performance</h3>
+                            <div id="carrier-performance"></div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-xl font-bold mb-4">Zone Distribution</h3>
+                            <div id="zone-distribution"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let adminToken = '';
+
+        // Login
+        function checkLogin() {
+            const token = document.getElementById('adminToken').value;
+            if (!token) {
+                alert('Please enter admin password');
+                return;
+            }
+            adminToken = token;
+            localStorage.setItem('adminToken', token);
+            testToken();
+        }
+
+        async function testToken() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/rates`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+
+                if (response.ok) {
+                    document.getElementById('loginModal').classList.add('hidden');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    loadDashboard();
+                    loadCarriers();
+                    loadSettings();
+                } else {
+                    alert('Invalid admin password');
+                    localStorage.removeItem('adminToken');
+                }
+            } catch (error) {
+                alert('Error connecting to server');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            location.reload();
+        }
+
+        // Check if already logged in
+        window.onload = function() {
+            const savedToken = localStorage.getItem('adminToken');
+            if (savedToken) {
+                adminToken = savedToken;
+                document.getElementById('adminToken').value = savedToken;
+                testToken();
+            }
+        };
+
+        // Tab Management
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-blue-600', 'text-blue-600');
+                btn.classList.add('text-gray-600');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+            activeBtn.classList.add('active', 'border-blue-600', 'text-blue-600');
+            activeBtn.classList.remove('text-gray-600');
+
+            if (tabName === 'analytics') loadAnalytics();
+            if (tabName === 'orders') loadOrders();
+        }
+
+        // Dashboard
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/analytics/overview`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                const data = await response.json();
+
+                document.getElementById('dash-total-orders').textContent = data.total_orders;
+                document.getElementById('dash-booked-orders').textContent = data.booked_orders;
+                document.getElementById('dash-revenue').textContent = `₹${data.total_revenue.toFixed(2)}`;
+
+                // Profit breakdown
+                document.getElementById('dash-base-cost').textContent = `₹${data.total_base_cost.toFixed(2)}`;
+                document.getElementById('dash-profit').textContent = `₹${data.total_profit.toFixed(2)}`;
+                document.getElementById('dash-gst').textContent = `₹${data.total_gst.toFixed(2)}`;
+                document.getElementById('dash-profit-percent').textContent = `${data.profit_margin_percent.toFixed(2)}%`;
+
+                // Carrier revenue
+                let carrierHtml = '';
+                for (const [carrier, revenue] of Object.entries(data.carrier_revenue)) {
+                    carrierHtml += `
+                        <div class="flex justify-between py-2 border-b">
+                            <span class="font-medium">${carrier}</span>
+                            <span class="text-green-600 font-bold">₹${revenue.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                document.getElementById('carrier-revenue-list').innerHTML = carrierHtml || '<p class="text-gray-500">No data</p>';
+
+                // Status breakdown
+                let statusHtml = '';
+                for (const [status, count] of Object.entries(data.status_breakdown)) {
+                    statusHtml += `
+                        <div class="flex justify-between py-2 border-b">
+                            <span class="capitalize">${status.replace('_', ' ')}</span>
+                            <span class="font-bold">${count}</span>
+                        </div>
+                    `;
+                }
+                document.getElementById('status-breakdown-list').innerHTML = statusHtml;
+
+                // Load carriers count
+                const carriersRes = await fetch(`${API_BASE}/api/admin/rates`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                const carriers = await carriersRes.json();
+                const activeCarriers = carriers.filter(c => c.active !== false).length;
+                document.getElementById('dash-carriers').textContent = activeCarriers;
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Carriers
+        async function loadCarriers() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/rates`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                const carriers = await response.json();
+
+                let html = '<table class="min-w-full"><thead class="bg-gray-100"><tr><th class="px-4 py-3 text-left">Carrier</th><th class="px-4 py-3 text-left">Mode</th><th class="px-4 py-3 text-left">Status</th><th class="px-4 py-3 text-right">Actions</th></tr></thead><tbody>';
+
+                carriers.forEach(carrier => {
+                    const isActive = carrier.active !== false;
+                    html += `
+                        <tr class="border-b">
+                            <td class="px-4 py-3 font-medium">${carrier.carrier_name}</td>
+                            <td class="px-4 py-3">${carrier.mode}</td>
+                            <td class="px-4 py-3">
+                                <span class="px-3 py-1 rounded-full text-sm ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                    ${isActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <button onclick="toggleCarrier('${carrier.carrier_name}', ${!isActive})" class="text-blue-600 hover:underline mr-3">${isActive ? 'Deactivate' : 'Activate'}</button>
+                                <button onclick="deleteCarrier('${carrier.carrier_name}')" class="text-red-600 hover:underline">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('carriers-list').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading carriers:', error);
+            }
+        }
+
+        async function toggleCarrier(carrierName, active) {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/carriers/${encodeURIComponent(carrierName)}/toggle-active?active=${active}`, {
+                    method: 'PUT',
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+
+                if (response.ok) {
+                    alert(`Carrier ${active ? 'activated' : 'deactivated'} successfully`);
+                    loadCarriers();
+                    loadDashboard();
+                } else {
+                    alert('Failed to update carrier');
+                }
+            } catch (error) {
+                alert('Error updating carrier');
+            }
+        }
+
+        async function deleteCarrier(carrierName) {
+            if (!confirm(`Are you sure you want to delete ${carrierName}?`)) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/carriers/${encodeURIComponent(carrierName)}`, {
+                    method: 'DELETE',
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+
+                if (response.ok) {
+                    alert('Carrier deleted successfully');
+                    loadCarriers();
+                    loadDashboard();
+                } else {
+                    alert('Failed to delete carrier');
+                }
+            } catch (error) {
+                alert('Error deleting carrier');
+            }
+        }
+
+        // Settings
+        async function loadSettings() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/settings`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                const settings = await response.json();
+
+                document.getElementById('gst-rate').value = settings.GST_RATE * 100;
+                document.getElementById('escalation-rate').value = settings.ESCALATION_RATE * 100;
+                document.getElementById('volumetric-divisor').value = settings.VOLUMETRIC_DIVISOR;
+                document.getElementById('weight-slab').value = settings.DEFAULT_WEIGHT_SLAB;
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        document.getElementById('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const settings = {
+                GST_RATE: parseFloat(document.getElementById('gst-rate').value) / 100,
+                ESCALATION_RATE: parseFloat(document.getElementById('escalation-rate').value) / 100,
+                VOLUMETRIC_DIVISOR: parseInt(document.getElementById('volumetric-divisor').value),
+                DEFAULT_WEIGHT_SLAB: parseFloat(document.getElementById('weight-slab').value)
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Token': adminToken
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                if (response.ok) {
+                    alert('Settings updated successfully! The server will reload to apply changes.');
+                    loadSettings();
+                } else {
+                    alert('Failed to update settings');
+                }
+            } catch (error) {
+                alert('Error updating settings');
+            }
+        });
+
+        // Orders
+        function editOrder(order) {
+            // Populate modal with order data
+            document.getElementById('edit-order-id').value = order.id;
+            document.getElementById('edit-order-number').value = order.order_number;
+            document.getElementById('edit-status').value = order.status;
+            document.getElementById('edit-sender-name').value = order.sender_name || '';
+            document.getElementById('edit-sender-phone').value = order.sender_phone || '';
+            document.getElementById('edit-sender-pincode').value = order.sender_pincode || '';
+            document.getElementById('edit-recipient-name').value = order.recipient_name || '';
+            document.getElementById('edit-recipient-contact').value = order.recipient_contact || '';
+            document.getElementById('edit-recipient-pincode').value = order.recipient_pincode || '';
+            document.getElementById('edit-recipient-address').value = order.recipient_address || '';
+            document.getElementById('edit-carrier').value = order.selected_carrier || '';
+            document.getElementById('edit-mode').value = order.mode || '';
+            document.getElementById('edit-weight').value = order.weight || '';
+            document.getElementById('edit-cost').value = order.total_cost || '';
+
+            // Show modal
+            document.getElementById('editOrderModal').classList.remove('hidden');
+        }
+
+        function closeEditOrderModal() {
+            document.getElementById('editOrderModal').classList.add('hidden');
+        }
+
+        document.getElementById('editOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const orderId = document.getElementById('edit-order-id').value;
+            const updateData = {
+                status: document.getElementById('edit-status').value,
+                sender_name: document.getElementById('edit-sender-name').value,
+                sender_phone: document.getElementById('edit-sender-phone').value,
+                sender_pincode: parseInt(document.getElementById('edit-sender-pincode').value),
+                recipient_name: document.getElementById('edit-recipient-name').value,
+                recipient_contact: document.getElementById('edit-recipient-contact').value,
+                recipient_pincode: parseInt(document.getElementById('edit-recipient-pincode').value),
+                recipient_address: document.getElementById('edit-recipient-address').value,
+                selected_carrier: document.getElementById('edit-carrier').value || null,
+                mode: document.getElementById('edit-mode').value || null,
+                weight: parseFloat(document.getElementById('edit-weight').value),
+                total_cost: parseFloat(document.getElementById('edit-cost').value) || null
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Token': adminToken
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (response.ok) {
+                    alert('Order updated successfully');
+                    closeEditOrderModal();
+                    loadOrders();
+                    loadDashboard();
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to update order: ${error.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error updating order:', error);
+                alert('Error updating order');
+            }
+        });
+
+        async function deleteOrder(orderId, orderNumber) {
+            if (!confirm(`Are you sure you want to delete order ${orderNumber}? This action cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/orders/${orderId}`, {
+                    method: 'DELETE',
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+
+                if (response.ok) {
+                    alert('Order deleted successfully');
+                    loadOrders();
+                    loadDashboard();
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to delete order: ${error.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error deleting order:', error);
+                alert('Error deleting order');
+            }
+        }
+
+        async function loadOrders() {
+            const statusFilter = document.getElementById('status-filter').value;
+
+            try {
+                const params = new URLSearchParams();
+                if (statusFilter) params.append('status_filter', statusFilter);
+                params.append('limit', '50');
+
+                const response = await fetch(`${API_BASE}/api/admin/orders/all?${params}`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                const data = await response.json();
+
+                let html = '<table class="min-w-full text-sm"><thead class="bg-gray-100"><tr><th class="px-3 py-2 text-left">Order #</th><th class="px-3 py-2 text-left">Recipient</th><th class="px-3 py-2 text-left">Status</th><th class="px-3 py-2 text-left">Carrier</th><th class="px-3 py-2 text-right">Cost</th><th class="px-3 py-2 text-left">Date</th><th class="px-3 py-2 text-right">Actions</th></tr></thead><tbody>';
+
+                data.orders.forEach(order => {
+                    const statusBadgeColors = {
+                        'pending': 'bg-yellow-100 text-yellow-700',
+                        'draft': 'bg-gray-100 text-gray-700',
+                        'booked': 'bg-blue-100 text-blue-700',
+                        'in_transit': 'bg-purple-100 text-purple-700',
+                        'delivered': 'bg-green-100 text-green-700',
+                        'cancelled': 'bg-red-100 text-red-700'
+                    };
+                    const badgeColor = statusBadgeColors[order.status] || 'bg-gray-100 text-gray-700';
+
+                    html += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-3 py-2 font-medium">${order.order_number}</td>
+                            <td class="px-3 py-2">${order.recipient_name}</td>
+                            <td class="px-3 py-2"><span class="px-2 py-1 rounded-full text-xs capitalize ${badgeColor}">${order.status.replace('_', ' ')}</span></td>
+                            <td class="px-3 py-2">${order.selected_carrier || '-'}</td>
+                            <td class="px-3 py-2 text-right">${order.total_cost ? '₹' + order.total_cost.toFixed(2) : '-'}</td>
+                            <td class="px-3 py-2">${new Date(order.created_at).toLocaleDateString()}</td>
+                            <td class="px-3 py-2 text-right">
+                                <button onclick='editOrder(${JSON.stringify(order)})' class="text-blue-600 hover:underline mr-3">Edit</button>
+                                <button onclick="deleteOrder(${order.id}, '${order.order_number}')" class="text-red-600 hover:underline">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                html += `<div class="mt-4 text-sm text-gray-600">Showing ${data.orders.length} of ${data.total} orders</div>`;
+                document.getElementById('orders-table').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading orders:', error);
+            }
+        }
+
+        // Analytics
+        async function loadAnalytics() {
+            await loadDailyChart();
+            await loadCarrierPerformance();
+            await loadZoneDistribution();
+        }
+
+        async function loadDailyChart() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/analytics/daily-stats?days=30`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                const data = await response.json();
+
+                const ctx = document.getElementById('daily-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.data.map(d => d.date),
+                        datasets: [{
+                            label: 'Revenue (₹)',
+                            data: data.data.map(d => d.revenue),
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            yAxisID: 'y'
+                        }, {
+                            label: 'Orders',
+                            data: data.data.map(d => d.orders),
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { type: 'linear', position: 'left', title: { display: true, text: 'Revenue (₹)' } },
+                            y1: { type: 'linear', position: 'right', title: { display: true, text: 'Orders' }, grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading daily chart:', error);
+            }
+        }
+
+        async function loadCarrierPerformance() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/analytics/carrier-performance`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                const data = await response.json();
+
+                let html = `
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-xs">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-2 py-2 text-left">Carrier</th>
+                                    <th class="px-2 py-2 text-right">Orders</th>
+                                    <th class="px-2 py-2 text-right">Base Cost</th>
+                                    <th class="px-2 py-2 text-right">Profit</th>
+                                    <th class="px-2 py-2 text-right">GST</th>
+                                    <th class="px-2 py-2 text-right">Total</th>
+                                    <th class="px-2 py-2 text-right">Margin %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                data.carriers.forEach(c => {
+                    html += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-2 py-2 font-medium">${c.carrier}</td>
+                            <td class="px-2 py-2 text-right">${c.total_orders}</td>
+                            <td class="px-2 py-2 text-right text-gray-600">₹${c.total_base_cost.toFixed(2)}</td>
+                            <td class="px-2 py-2 text-right text-green-600 font-semibold">₹${c.total_profit.toFixed(2)}</td>
+                            <td class="px-2 py-2 text-right text-blue-600">₹${c.total_gst.toFixed(2)}</td>
+                            <td class="px-2 py-2 text-right text-purple-600 font-bold">₹${c.total_revenue.toFixed(2)}</td>
+                            <td class="px-2 py-2 text-right text-emerald-600 font-semibold">${c.profit_margin_percent}%</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div>';
+                document.getElementById('carrier-performance').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading carrier performance:', error);
+            }
+        }
+
+        async function loadZoneDistribution() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/analytics/zone-distribution`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                const data = await response.json();
+
+                let html = '<table class="min-w-full text-sm"><thead class="bg-gray-50"><tr><th class="px-3 py-2 text-left">Zone</th><th class="px-3 py-2 text-right">Orders</th><th class="px-3 py-2 text-right">Revenue</th></tr></thead><tbody>';
+
+                for (const [zone, stats] of Object.entries(data.zones)) {
+                    html += `
+                        <tr class="border-b">
+                            <td class="px-3 py-2 font-medium">${zone}</td>
+                            <td class="px-3 py-2 text-right">${stats.orders}</td>
+                            <td class="px-3 py-2 text-right text-green-600">₹${stats.revenue}</td>
+                        </tr>
+                    `;
+                }
+
+                html += '</tbody></table>';
+                document.getElementById('zone-distribution').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading zone distribution:', error);
+            }
+        }
+
+        function showAddCarrierModal() {
+            document.getElementById('addCarrierModal').classList.remove('hidden');
+        }
+
+        function closeAddCarrierModal() {
+            document.getElementById('addCarrierModal').classList.add('hidden');
+            document.getElementById('addCarrierForm').reset();
+        }
+
+        document.getElementById('addCarrierForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const carrierData = {
+                carrier_name: document.getElementById('new-carrier-name').value,
+                mode: document.getElementById('new-carrier-mode').value,
+                min_weight: parseFloat(document.getElementById('new-min-weight').value),
+                active: document.getElementById('new-carrier-active').value === 'true',
+                forward_rates: {
+                    z_a: parseFloat(document.getElementById('new-fwd-z_a').value),
+                    z_b: parseFloat(document.getElementById('new-fwd-z_b').value),
+                    z_c: parseFloat(document.getElementById('new-fwd-z_c').value),
+                    z_d: parseFloat(document.getElementById('new-fwd-z_d').value),
+                    z_e: parseFloat(document.getElementById('new-fwd-z_e').value),
+                    z_f: parseFloat(document.getElementById('new-fwd-z_f').value)
+                },
+                additional_rates: {
+                    z_a: parseFloat(document.getElementById('new-add-z_a').value),
+                    z_b: parseFloat(document.getElementById('new-add-z_b').value),
+                    z_c: parseFloat(document.getElementById('new-add-z_c').value),
+                    z_d: parseFloat(document.getElementById('new-add-z_d').value),
+                    z_e: parseFloat(document.getElementById('new-add-z_e').value),
+                    z_f: parseFloat(document.getElementById('new-add-z_f').value)
+                },
+                cod_fixed: parseFloat(document.getElementById('new-cod-fixed').value),
+                cod_percent: parseFloat(document.getElementById('new-cod-percent').value) / 100 // Convert to decimal
+            };
+
+            // Add RTO rates if provided
+            const rtoZones = ['z_a', 'z_b', 'z_c', 'z_d', 'z_e', 'z_f'];
+            const rtoRates = {};
+            let hasRtoRates = false;
+
+            rtoZones.forEach(zone => {
+                const value = parseFloat(document.getElementById(`new-rto-${zone}`).value) || 0;
+                rtoRates[zone] = value;
+                if (value > 0) hasRtoRates = true;
+            });
+
+            if (hasRtoRates) {
+                carrierData.rto_rates = rtoRates;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/rates/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Token': adminToken
+                    },
+                    body: JSON.stringify(carrierData)
+                });
+
+                if (response.ok) {
+                    alert('Carrier added successfully!');
+                    closeAddCarrierModal();
+                    loadCarriers();
+                    loadDashboard();
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to add carrier: ${error.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error adding carrier:', error);
+                alert('Error adding carrier. Please check your input and try again.');
+            }
+        });
+    </script>
+</body>
+</html>

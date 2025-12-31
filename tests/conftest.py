@@ -111,3 +111,121 @@ def restore_rate_cards():
     if os.path.exists(backup_path):
         shutil.copy(backup_path, RATE_CARD_PATH)
         os.remove(backup_path)
+
+
+@pytest.fixture
+def db_session():
+    """
+    Database session fixture for testing
+    """
+    from app.database import SessionLocal, init_db
+
+    # Initialize database
+    init_db()
+
+    # Create session
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@pytest.fixture
+def sample_order(db_session):
+    """
+    Create a sample order in the database for testing
+    """
+    from app.database import Order, OrderStatus, PaymentMode
+    from datetime import datetime
+
+    order = Order(
+        order_number=f"ORD-TEST-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+        sender_pincode=400001,
+        sender_name="Test Sender",
+        sender_phone="9876543210",
+        recipient_pincode=110001,
+        recipient_name="Test Recipient",
+        recipient_contact="9876543211",
+        recipient_address="Test Address",
+        weight=1.5,
+        length=30.0,
+        width=20.0,
+        height=10.0,
+        payment_mode=PaymentMode.PREPAID,
+        status=OrderStatus.PENDING,
+        created_at=datetime.utcnow()
+    )
+
+    db_session.add(order)
+    db_session.commit()
+    db_session.refresh(order)
+
+    yield order
+
+    # Cleanup
+    db_session.delete(order)
+    db_session.commit()
+
+
+@pytest.fixture
+def sample_booked_order(db_session):
+    """
+    Create a booked order for testing analytics
+    """
+    from app.database import Order, OrderStatus, PaymentMode
+    from datetime import datetime
+
+    order = Order(
+        order_number=f"ORD-BOOKED-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+        sender_pincode=400001,
+        sender_name="Test Sender",
+        sender_phone="9876543210",
+        recipient_pincode=110001,
+        recipient_name="Test Recipient",
+        recipient_contact="9876543211",
+        recipient_address="Test Address",
+        weight=2.0,
+        length=30.0,
+        width=20.0,
+        height=10.0,
+        payment_mode=PaymentMode.COD,
+        status=OrderStatus.BOOKED,
+        selected_carrier="Blue Dart",
+        mode="Surface",
+        zone_applied="Zone C",
+        total_cost=150.00,
+        created_at=datetime.utcnow()
+    )
+
+    db_session.add(order)
+    db_session.commit()
+    db_session.refresh(order)
+
+    yield order
+
+    # Cleanup
+    db_session.delete(order)
+    db_session.commit()
+
+
+@pytest.fixture
+def sample_order_data():
+    """
+    Sample order data for creating new orders
+    """
+    return {
+        "sender_pincode": 400001,
+        "sender_name": "John Doe",
+        "sender_phone": "9876543210",
+        "recipient_pincode": 110001,
+        "recipient_name": "Jane Smith",
+        "recipient_contact": "9876543211",
+        "recipient_address": "123 Test Street, Test Area",
+        "weight": 1.5,
+        "length": 30.0,
+        "width": 20.0,
+        "height": 10.0,
+        "payment_mode": "prepaid",
+        "order_value": 1000.0
+    }

@@ -4,7 +4,7 @@
         "mode": "Surface",
         "min_weight": 0.5,
         "forward_rates": {
-            "z_a": 25,
+            "z_a": 29.43,
             "z_b": 32.1,
             "z_c": 38.79,
             "z_d": 44.14,

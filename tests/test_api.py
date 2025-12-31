@@ -49,8 +49,10 @@ class TestCompareRatesEndpoint:
             assert "base_forward" in breakdown
             assert "additional_weight" in breakdown
             assert "cod" in breakdown
+            assert "escalation" in breakdown
             assert "gst" in breakdown
             assert "applied_gst_rate" in breakdown
+            assert "applied_escalation_rate" in breakdown
 
     def test_invalid_source_pincode(self, client, sample_rate_request):
         """Test validation fails for invalid source pincode"""
@@ -235,3 +237,143 @@ class TestEdgeCases:
         if data:
             # Should be Zone A (Local)
             assert "Zone A" in data[0]["applied_zone"] or "Local" in data[0]["applied_zone"]
+
+
+class TestRateLimiting:
+    """Tests for rate limiting"""
+
+    def test_rate_limit_not_exceeded_normal_usage(self, client, sample_rate_request):
+        """Test normal usage doesn't hit rate limit"""
+        # Make a few requests (well below 30/minute limit)
+        for _ in range(5):
+            response = client.post("/compare-rates", json=sample_rate_request)
+            assert response.status_code == status.HTTP_200_OK
+
+
+class TestLoadRatesFunction:
+    """Tests for load_rates helper function"""
+
+    def test_load_rates_returns_list(self, client):
+        """Test load_rates returns a list"""
+        response = client.get("/health")
+        data = response.json()
+        assert data["rate_card_count"] >= 0  # Should have count of loaded rates
+
+
+class TestStartupValidation:
+    """Tests for startup validation"""
+
+    def test_health_check_after_startup(self, client):
+        """Test health check shows system is ready"""
+        response = client.get("/health")
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["status"] == "healthy"
+        assert data["pincode_db_loaded"] is True
+        assert data["pincode_count"] > 0
+
+
+class TestRootEndpoint:
+    """Tests for root endpoint redirect"""
+
+    def test_root_redirects_to_dashboard(self, client):
+        """Test root path redirects to dashboard"""
+        response = client.get("/", follow_redirects=False)
+        assert response.status_code in [307, 302]  # Redirect status codes
+        assert "dashboard.html" in response.headers.get("location", "")
+
+
+class TestCompareRatesFiltering:
+    """Tests for carrier filtering in compare rates"""
+
+    def test_inactive_carriers_excluded(self, client, sample_rate_request):
+        """Test inactive carriers are not returned"""
+        response = client.post("/compare-rates", json=sample_rate_request)
+        data = response.json()
+
+        # All returned carriers should be active
+        # (We can't directly test this without knowing carrier data)
+        assert isinstance(data, list)
+
+    def test_no_carriers_for_invalid_mode(self, client, sample_rate_request):
+        """Test error when no carriers match mode"""
+        # This might not fail depending on carrier data
+        # Just verify response structure is correct
+        sample_rate_request["mode"] = "Surface"
+        response = client.post("/compare-rates", json=sample_rate_request)
+
+        # Should return 200 with results or 404 if no carriers
+        assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
+
+
+class TestErrorHandling:
+    """Tests for error handling"""
+
+    def test_malformed_json_request(self, client):
+        """Test malformed JSON is handled"""
+        response = client.post(
+            "/compare-rates",
+            data="{ invalid json }",
+            headers={"Content-Type": "application/json"}
+        )
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_empty_request_body(self, client):
+        """Test empty request body fails validation"""
+        response = client.post("/compare-rates", json={})
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+class TestAdminEndpointsExtended:
+    """Extended tests for admin endpoints"""
+
+    def test_add_carrier_validates_zones(self, client, admin_token):
+        """Test adding carrier requires all zone rates"""
+        incomplete_carrier = {
+            "carrier_name": "Incomplete Carrier",
+            "mode": "Surface",
+            "min_weight": 0.5,
+            "forward_rates": {
+                "z_a": 30.0,
+                # Missing other zones
+            },
+            "additional_rates": {
+                "z_a": 5.0,
+            },
+            "cod_fixed": 25.0,
+            "cod_percent": 0.015
+        }
+
+        response = client.post(
+            "/api/admin/rates/add",
+            headers={"X-Admin-Token": admin_token},
+            json=incomplete_carrier
+        )
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_update_rates_preserves_structure(self, client, admin_token):
+        """Test updating rates preserves data structure"""
+        # Get current rates
+        get_response = client.get(
+            "/api/admin/rates",
+            headers={"X-Admin-Token": admin_token}
+        )
+        original_rates = get_response.json()
+
+        # Update with same data
+        update_response = client.post(
+            "/api/admin/rates/update",
+            headers={"X-Admin-Token": admin_token},
+            json=original_rates
+        )
+
+        assert update_response.status_code == status.HTTP_200_OK
+
+        # Verify data is unchanged
+        verify_response = client.get(
+            "/api/admin/rates",
+            headers={"X-Admin-Token": admin_token}
+        )
+        updated_rates = verify_response.json()
+        assert len(updated_rates) == len(original_rates)

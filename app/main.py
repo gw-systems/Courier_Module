@@ -1,12 +1,16 @@
 from fastapi import FastAPI, HTTPException, APIRouter, Depends, Header, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from .schemas import RateRequest, NewCarrier
 from .engine import calculate_cost
 from .zones import get_zone_column
+from . import orders
+from . import admin_extended
+from .database import init_db
 import json
 import os
 from dotenv import load_dotenv
@@ -166,6 +170,13 @@ app.add_middleware(
 )
 
 app.include_router(admin_router)
+# Include extended admin router with same auth dependency and prefix
+app.include_router(
+    admin_extended.router,
+    prefix="/api/admin",
+    dependencies=[Depends(verify_admin_token)]
+)
+app.include_router(orders.router)
 
 # Mount static files
 STATIC_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
@@ -195,6 +206,10 @@ async def startup_validation():
     """Validate critical resources on startup"""
     from .zones import PINCODE_LOOKUP
 
+    # Initialize database
+    init_db()
+    app_logger.info("Database tables initialized")
+
     if len(PINCODE_LOOKUP) == 0:
         app_logger.critical("STARTUP FAILED: No pincodes loaded from database")
         raise RuntimeError("Database initialization failed - no pincodes available")
@@ -223,7 +238,14 @@ def health_check():
     }
 
 
-# --- 7. PUBLIC API ROUTES ---
+# --- 7. ROOT REDIRECT ---
+@app.get("/")
+def root():
+    """Redirect to dashboard"""
+    return RedirectResponse(url="/static/dashboard.html")
+
+
+# --- 7.1. PUBLIC API ROUTES ---
 @app.post("/compare-rates")
 @limiter.limit("30/minute")
 def compare_rates(request: Request, rate_request: RateRequest):

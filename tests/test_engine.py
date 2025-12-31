@@ -92,8 +92,8 @@ class TestCalculateCost:
 
         assert result["breakdown"]["cod"] == 0.0
 
-    def test_gst_calculation(self, sample_carrier_data):
-        """Test GST is calculated correctly at 18%"""
+    def test_escalation_calculation(self, sample_carrier_data):
+        """Test 15% escalation is applied before GST"""
         result = calculate_cost(
             weight=0.5,
             zone_key="z_a",
@@ -104,13 +104,32 @@ class TestCalculateCost:
 
         # Base: 30.0, Additional: 0, COD: 0
         # Subtotal: 30.0
-        # GST: 30.0 * 0.18 = 5.4
-        expected_gst = round(30.0 * 0.18, 2)
+        # Escalation: 30.0 * 0.15 = 4.5
+        expected_escalation = round(30.0 * 0.15, 2)
+        assert result["breakdown"]["escalation"] == expected_escalation
+        assert result["breakdown"]["applied_escalation_rate"] == "15%"
+
+    def test_gst_calculation(self, sample_carrier_data):
+        """Test GST is calculated correctly at 18% on escalated amount"""
+        result = calculate_cost(
+            weight=0.5,
+            zone_key="z_a",
+            carrier_data=sample_carrier_data,
+            is_cod=False,
+            order_value=0
+        )
+
+        # Base: 30.0, Additional: 0, COD: 0
+        # Subtotal: 30.0
+        # Escalation: 30.0 * 0.15 = 4.5
+        # After Escalation: 34.5
+        # GST: 34.5 * 0.18 = 6.21
+        expected_gst = round(34.5 * 0.18, 2)
         assert result["breakdown"]["gst"] == expected_gst
         assert result["breakdown"]["applied_gst_rate"] == "18%"
 
     def test_total_cost_calculation(self, sample_carrier_data):
-        """Test total cost includes all components plus GST"""
+        """Test total cost includes all components plus escalation and GST"""
         result = calculate_cost(
             weight=1.5,
             zone_key="z_a",
@@ -123,9 +142,11 @@ class TestCalculateCost:
         # Additional: 50.0 (2 units * 25.0)
         # COD: 30.0 (fixed is higher)
         # Subtotal: 110.0
-        # GST: 110.0 * 0.18 = 19.8
-        # Total: 129.8
-        expected_total = round(110.0 * 1.18, 2)
+        # Escalation: 110.0 * 0.15 = 16.5
+        # After Escalation: 126.5
+        # GST: 126.5 * 0.18 = 22.77
+        # Total: 149.27
+        expected_total = round(126.5 * 1.18, 2)
         assert result["total_cost"] == expected_total
 
     def test_different_zones(self, sample_carrier_data):
@@ -180,7 +201,9 @@ class TestCalculateCost:
     def test_settings_integration(self):
         """Test that function uses settings from settings.json"""
         assert SETTINGS["GST_RATE"] == 0.18
+        assert SETTINGS["ESCALATION_RATE"] == 0.15
         assert SETTINGS["DEFAULT_WEIGHT_SLAB"] == 0.5
+        assert SETTINGS["VOLUMETRIC_DIVISOR"] == 5000
 
 
 class TestEdgeCases:

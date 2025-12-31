@@ -85,24 +85,30 @@ def get_zone_column(source_pincode: int, dest_pincode: int):
     s_loc = get_location_details(source_pincode)
     d_loc = get_location_details(dest_pincode)
 
+    # Fallback if pincodes are not found in database
     if not s_loc or not d_loc:
-        return "z_d", "Zone D (National - Pincode Not Found)"
+        return "z_d", "Zone D (Pan-India - Pincode Not Found)"
 
-    # Priority 1: Zone E (Special States)
+    # Priority 1: Zone E (North-East & J&K)
+    # Highest priority: If either location is in a special state 
     if s_loc['state'] in ZONE_E_STATES or d_loc['state'] in ZONE_E_STATES:
-        return "z_f", "Zone E (Special/NE/J&K)"
+        return "z_f", "Zone E (North-East & J&K)"
 
-    # Priority 2: Zone A (Local)
-    if s_loc['city'] == d_loc['city']:
-        return "z_a", "Zone A (Local)"
+    # Priority 2: Zone A (Metropolitan)
+    # Both source and destination must be metro cities 
+    if is_metro(s_loc) and is_metro(d_loc):
+        return "z_a", "Zone A (Metropolitan)"
 
     # Priority 3: Zone B (Regional)
+    # Locations are within the same state 
     if s_loc['state'] == d_loc['state']:
-        return "z_b", "Zone B (Regional/Same State)"
+        return "z_b", "Zone B (Regional)"
 
-    # Priority 4: Zone C (Metro to Metro)
-    if is_metro(s_loc) and is_metro(d_loc):
-        return "z_c", "Zone C (Metro to Metro)"
+    # Priority 4: Zone C (Inter-city)
+    # Locations are in different cities/states (not matching higher priorities) 
+    if s_loc['city'] != d_loc['city']:
+        return "z_c", "Zone C (Intercity)"
 
-    # Priority 5: Zone D Fallback
-    return "z_d", "Zone D (National/Rest of India)"
+    # Priority 5: Zone D (Pan-India)
+    # General fallback for all other national shipments 
+    return "z_d", "Zone D (Pan-India)"
