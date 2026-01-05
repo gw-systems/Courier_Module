@@ -358,3 +358,10 @@ if SENTRY_DSN and ENVIRONMENT == 'production':
     except ImportError:
         pass  # sentry-sdk not installed
 
+
+# =============================================================================
+# DATA UPLOAD SETTINGS
+# =============================================================================
+
+# Increase field limit for Admin panel (to support large city lists)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None

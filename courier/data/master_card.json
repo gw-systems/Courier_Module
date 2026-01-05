@@ -1,6 +1,6 @@
 [
     {
-        "carrier_name": "ACPL Surface (PTL)",
+        "carrier_name": "ACPL Surface 50kg",
         "type": "PTL",
         "mode": "Surface",
         "active": true,
@@ -22,25 +22,166 @@
             "appointment_delivery": 1500.0
         },
         "variable_fees": {
-            "hamali_per_kg": 0.50,
+            "hamali_per_kg": 0.5,
             "min_hamali": 50.0,
             "fov_insured_percent": 0.0004,
             "fov_uninsured_percent": 0.005,
             "fov_min": 20.0,
-            "damage_claim_percent": 0.0
+            "damage_claim_percent": 0.0,
+            "cod_percent": 0.0
         },
         "routing_logic": {
             "is_city_specific": true,
             "city_rates": {
-                "bhosari": 2.45,
-                "chakan": 2.45,
-                "tathawade": 2.20,
-                "nagpur": 5.20,
-                "indore": 4.60,
-                "pithampur": 4.10,
+                "ahmedabad": 4.75,
+                "ahmednagar": 2.75,
+                "akola": 4.25,
+                "ambarnath": 2.4,
+                "ambattur": 7.2,
+                "amravati": 4.5,
+                "ankleshwar": 3.95,
+                "asangaon": 2.15,
+                "aslali": 4.55,
+                "aurangabad": 3.35,
+                "autonagar": 5.65,
+                "badlapur": 2.4,
+                "bahadurgarh": 6.65,
+                "baramati": 3.55,
+                "barshi": 3.9,
+                "beed": 3.9,
+                "belgaum": 3.85,
+                "bhandara": 5.4,
+                "bhavnagar": 5.55,
+                "bhiwadi": 6.65,
+                "bhiwandi": 2.05,
                 "bhopal": 5.05,
+                "bhosari": 2.45,
+                "bilimora": 3.35,
+                "bommasandra": 6.75,
+                "broadway": 7.4,
+                "chakan": 2.45,
+                "changodar": 4.5,
+                "cherlapally": 5.3,
+                "chhatral": 5.15,
+                "chitegaon": 3.35,
+                "cochin": 7.7,
+                "coimbatore": 6.9,
+                "dahej": 4.35,
+                "daman": 3.05,
+                "davangere": 5.1,
+                "delhi": 6.65,
+                "dewas": 5.1,
+                "dhule": 2.95,
+                "dindori": 2.9,
+                "dombivali": 2.4,
+                "erode": 7.05,
+                "faridabad": 6.65,
+                "fursungi": 2.45,
+                "gandhidham": 5.7,
+                "ghaziabad": 6.65,
+                "goa": 4.5,
+                "golden chowkadi": 3.75,
+                "gummidipundi": 7.6,
+                "gurugram": 6.35,
+                "halol": 4.45,
+                "haridwar": 7.55,
+                "hazira": 3.95,
+                "hubli": 4.3,
+                "ichalkaranji": 3.75,
+                "indore": 4.6,
+                "jaipur": 6.55,
+                "jalgaon": 3.35,
+                "jalna": 3.35,
+                "jamnagar": 5.7,
+                "jejuri": 2.8,
+                "jodhpur": 5.85,
+                "kagal": 3.55,
+                "kalaburagi": 4.2,
+                "kandlakoya": 4.95,
+                "karad": 3.15,
+                "karwar": 4.85,
+                "katedan": 5.6,
+                "khed": 2.7,
+                "khedshivapur": 2.9,
+                "khopoli": 2.4,
+                "kim": 3.95,
+                "kolhapur": 3.45,
+                "kukatpally": 5.1,
+                "kundli": 6.85,
+                "kurkumbh": 3.3,
+                "lautur": 4.1,
+                "lonavala": 2.4,
+                "m m nagar": 7.75,
+                "madurai": 7.65,
+                "masjid": 2.4,
+                "meerut": 6.95,
+                "mehsana": 5.65,
+                "mira bhayandar": 2.15,
+                "morbi": 5.25,
+                "mumbai central": 2.4,
+                "mysore": 6.4,
+                "nagpur": 5.2,
+                "nanded": 4.4,
+                "nashik": 2.2,
+                "navi mumbai": 2.4,
+                "navsari": 3.35,
+                "new delhi": 6.65,
+                "nipani": 3.85,
                 "noida": 6.85,
-                "jaipur": 6.55
+                "odhav": 4.65,
+                "olpad": 4.05,
+                "palghar": 2.4,
+                "palsana": 3.05,
+                "palus": 3.8,
+                "panvel": 2.4,
+                "patancheru": 5.1,
+                "peenya": 6.25,
+                "pirangut": 2.7,
+                "pithampur": 4.1,
+                "pondicherry": 9.15,
+                "poonamalle": 7.4,
+                "pune": 2.7,
+                "rajkot": 5.25,
+                "ranipet": 6.9,
+                "ranjangaon": 2.45,
+                "roha": 2.75,
+                "salem": 6.9,
+                "sanand": 4.75,
+                "sangli": 3.35,
+                "satara": 2.95,
+                "secundarabad": 5.15,
+                "selaqui": 7.75,
+                "shendra": 3.55,
+                "shimoga": 6.15,
+                "shiroli": 3.55,
+                "shirwal": 2.7,
+                "shivane": 2.45,
+                "sidhpur": 6.1,
+                "silvasa": 2.8,
+                "sindhudurg": 4.85,
+                "sinnar": 2.8,
+                "solapur": 3.55,
+                "surat": 3.6,
+                "surendranagar": 5.55,
+                "talegaon": 2.55,
+                "tathawade": 2.2,
+                "thane": 2.15,
+                "tumkur": 6.5,
+                "udaipur": 4.95,
+                "umbergaon": 3.05,
+                "v v nagar": 4.55,
+                "vadodara": 3.95,
+                "valsad": 3.15,
+                "vapi": 2.8,
+                "vasai": 2.15,
+                "vatva": 4.55,
+                "vitthlapur": 5.65,
+                "wada": 2.15,
+                "wagholi": 2.45,
+                "wai": 3.1,
+                "waluj": 3.15,
+                "white field": 6.65,
+                "yeshwantpur": 6.05
             },
             "zonal_rates": [],
             "door_delivery_slabs": [
@@ -63,59 +204,7 @@
         }
     },
     {
-        "carrier_name": "Shadowfax Surface",
-        "type": "Courier",
-        "mode": "Surface",
-        "active": true,
-        "logic": "Zonal",
-        "volumetric_divisor": 4500,
-        "min_weight": 0.5,
-        "min_freight": 0.0,
-        "min_frieght_value": 0.0,
-        "fuel_config": {
-            "is_dynamic": false,
-            "base_diesel_price": 0.0,
-            "diesel_ratio": 0.0,
-            "flat_percent": 0.0
-        },
-        "fixed_fees": {
-            "docket_fee": 0.0,
-            "eway_bill_fee": 0.0,
-            "cod_fixed": 27.69,
-            "appointment_delivery": 0.0
-        },
-        "variable_fees": {
-            "cod_percent": 0.0188,
-            "hamali_per_kg": 0.0,
-            "fov_insured_percent": 0.0,
-            "damage_claim_percent": 0.0
-        },
-        "routing_logic": {
-            "is_city_specific": false,
-            "zonal_rates": {
-                "forward": {
-                    "z_a": 27.50,
-                    "z_b": 30.00,
-                    "z_c": 36.25,
-                    "z_d": 41.25,
-                    "z_e": 52.50,
-                    "z_f": 0.0
-                },
-                "additional": {
-                    "z_a": 23.75,
-                    "z_b": 26.25,
-                    "z_c": 31.25,
-                    "z_d": 33.75,
-                    "z_e": 37.50,
-                    "z_f": 0.0
-                }
-            },
-            "city_rates": null,
-            "door_delivery_slabs": []
-        }
-    },
-    {
-        "carrier_name": "Ekart Surface",
+        "carrier_name": "ATS Surface 0.5kg",
         "type": "Courier",
         "mode": "Surface",
         "active": true,
@@ -137,7 +226,7 @@
             "appointment_delivery": 0.0
         },
         "variable_fees": {
-            "cod_percent": 1.4,
+            "cod_percent": 1.15,
             "hamali_per_kg": 0.0,
             "fov_insured_percent": 0.0,
             "damage_claim_percent": 0.0
@@ -147,17 +236,175 @@
             "zonal_rates": {
                 "forward": {
                     "z_a": 28.0,
-                    "z_b": 32.00,
-                    "z_c": 35.00,
-                    "z_d": 40.0,
-                    "z_e": 59.0
+                    "z_b": 32.0,
+                    "z_c": 37.0,
+                    "z_d": 41.0,
+                    "z_e": 58.0,
+                    "z_f": 0.0
                 },
                 "additional": {
-                    "z_a": 17.0,
+                    "z_a": 24.0,
+                    "z_b": 26.0,
+                    "z_c": 31.0,
+                    "z_d": 34.0,
+                    "z_e": 34.0,
+                    "z_f": 0.0
+                }
+            },
+            "city_rates": null,
+            "door_delivery_slabs": []
+        }
+    },
+    {
+        "carrier_name": "DTDC Air 0.5kg",
+        "type": "Courier",
+        "mode": "Air",
+        "active": true,
+        "logic": "Zonal",
+        "volumetric_divisor": 4500,
+        "min_weight": 0.5,
+        "min_freight": 0.0,
+        "min_frieght_value": 0.0,
+        "fuel_config": {
+            "is_dynamic": false,
+            "base_diesel_price": 0.0,
+            "diesel_ratio": 0.0,
+            "flat_percent": 0.0
+        },
+        "fixed_fees": {
+            "docket_fee": 0.0,
+            "eway_bill_fee": 0.0,
+            "cod_fixed": 36.0,
+            "appointment_delivery": 0.0
+        },
+        "variable_fees": {
+            "cod_percent": 1.6,
+            "hamali_per_kg": 0.0,
+            "fov_insured_percent": 0.0,
+            "damage_claim_percent": 0.0
+        },
+        "routing_logic": {
+            "is_city_specific": false,
+            "zonal_rates": {
+                "forward": {
+                    "z_a": 32.0,
+                    "z_b": 36.0,
+                    "z_c": 56.0,
+                    "z_d": 60.0,
+                    "z_e": 54.0,
+                    "z_f": 0.0
+                },
+                "additional": {
+                    "z_a": 16.0,
                     "z_b": 19.0,
-                    "z_c": 23.0,
-                    "z_d": 28.0,
-                    "z_e": 50.0
+                    "z_c": 44.0,
+                    "z_d": 46.0,
+                    "z_e": 54.0,
+                    "z_f": 0.0
+                }
+            },
+            "city_rates": null,
+            "door_delivery_slabs": []
+        }
+    },
+    {
+        "carrier_name": "DTDC Surface 0.5kg",
+        "type": "Courier",
+        "mode": "Surface",
+        "active": true,
+        "logic": "Zonal",
+        "volumetric_divisor": 4500,
+        "min_weight": 0.5,
+        "min_freight": 0.0,
+        "min_frieght_value": 0.0,
+        "fuel_config": {
+            "is_dynamic": false,
+            "base_diesel_price": 0.0,
+            "diesel_ratio": 0.0,
+            "flat_percent": 0.0
+        },
+        "fixed_fees": {
+            "docket_fee": 0.0,
+            "eway_bill_fee": 0.0,
+            "cod_fixed": 36.0,
+            "appointment_delivery": 0.0
+        },
+        "variable_fees": {
+            "cod_percent": 1.6,
+            "hamali_per_kg": 0.0,
+            "fov_insured_percent": 0.0,
+            "damage_claim_percent": 0.0
+        },
+        "routing_logic": {
+            "is_city_specific": false,
+            "zonal_rates": {
+                "forward": {
+                    "z_a": 32.0,
+                    "z_b": 36.0,
+                    "z_c": 42.0,
+                    "z_d": 48.0,
+                    "z_e": 59.0,
+                    "z_f": 0.0
+                },
+                "additional": {
+                    "z_a": 16.0,
+                    "z_b": 19.0,
+                    "z_c": 22.0,
+                    "z_d": 24.0,
+                    "z_e": 30.0,
+                    "z_f": 0.0
+                }
+            },
+            "city_rates": null,
+            "door_delivery_slabs": []
+        }
+    },
+    {
+        "carrier_name": "Delhivery Air 0.5kg",
+        "type": "Courier",
+        "mode": "Air",
+        "active": true,
+        "logic": "Zonal",
+        "volumetric_divisor": 4500,
+        "min_weight": 0.5,
+        "min_freight": 0.0,
+        "min_frieght_value": 0.0,
+        "fuel_config": {
+            "is_dynamic": false,
+            "base_diesel_price": 0.0,
+            "diesel_ratio": 0.0,
+            "flat_percent": 0.0
+        },
+        "fixed_fees": {
+            "docket_fee": 0.0,
+            "eway_bill_fee": 0.0,
+            "cod_fixed": 32.0,
+            "appointment_delivery": 0.0
+        },
+        "variable_fees": {
+            "cod_percent": 1.75,
+            "hamali_per_kg": 0.0,
+            "fov_insured_percent": 0.0,
+            "damage_claim_percent": 0.0
+        },
+        "routing_logic": {
+            "is_city_specific": false,
+            "zonal_rates": {
+                "forward": {
+                    "z_a": 30.0,
+                    "z_b": 34.0,
+                    "z_c": 49.0,
+                    "z_d": 58.0,
+                    "z_e": 75.0,
+                    "z_f": 0.0
+                },
+                "additional": {
+                    "z_a": 30.0,
+                    "z_b": 34.0,
+                    "z_c": 49.0,
+                    "z_d": 58.0,
+                    "z_e": 75.0,
+                    "z_f": 0.0
                 }
             },
             "city_rates": null,
@@ -197,367 +444,19 @@
             "zonal_rates": {
                 "forward": {
                     "z_a": 27.0,
-                    "z_b": 30.00,
-                    "z_c": 36.00,
+                    "z_b": 30.0,
+                    "z_c": 36.0,
                     "z_d": 41.0,
-                    "z_e": 69.0
+                    "z_e": 69.0,
+                    "z_f": 0.0
                 },
                 "additional": {
                     "z_a": 26.0,
                     "z_b": 32.0,
                     "z_c": 36.0,
                     "z_d": 42.0,
-                    "z_e": 67.0
-                }
-            },
-            "city_rates": null,
-            "door_delivery_slabs": []
-        }
-    },
-    {
-        "carrier_name": "ATS Surface",
-        "type": "Courier",
-        "mode": "Surface",
-        "active": true,
-        "logic": "Zonal",
-        "volumetric_divisor": 4500,
-        "min_weight": 0.5,
-        "min_freight": 0.0,
-        "min_frieght_value": 0.0,
-        "fuel_config": {
-            "is_dynamic": false,
-            "base_diesel_price": 0.0,
-            "diesel_ratio": 0.0,
-            "flat_percent": 0.0
-        },
-        "fixed_fees": {
-            "docket_fee": 0.0,
-            "eway_bill_fee": 0.0,
-            "cod_fixed": 26.0,
-            "appointment_delivery": 0.0
-        },
-        "variable_fees": {
-            "cod_percent": 1.15,
-            "hamali_per_kg": 0.0,
-            "fov_insured_percent": 0.0,
-            "damage_claim_percent": 0.0
-        },
-        "routing_logic": {
-            "is_city_specific": false,
-            "zonal_rates": {
-                "forward": {
-                    "z_a": 28.0,
-                    "z_b": 32.00,
-                    "z_c": 37.00,
-                    "z_d": 41.0,
-                    "z_e": 58.0
-                },
-                "additional": {
-                    "z_a": 24.0,
-                    "z_b": 26.0,
-                    "z_c": 31.0,
-                    "z_d": 34.0,
-                    "z_e": 34.0
-                }
-            },
-            "city_rates": null,
-            "door_delivery_slabs": []
-        }
-    },
-    {
-        "carrier_name": "DTDC Surface",
-        "type": "Courier",
-        "mode": "Surface",
-        "active": true,
-        "logic": "Zonal",
-        "volumetric_divisor": 4500,
-        "min_weight": 0.5,
-        "min_freight": 0.0,
-        "min_frieght_value": 0.0,
-        "fuel_config": {
-            "is_dynamic": false,
-            "base_diesel_price": 0.0,
-            "diesel_ratio": 0.0,
-            "flat_percent": 0.0
-        },
-        "fixed_fees": {
-            "docket_fee": 0.0,
-            "eway_bill_fee": 0.0,
-            "cod_fixed": 36.0,
-            "appointment_delivery": 0.0
-        },
-        "variable_fees": {
-            "cod_percent": 1.6,
-            "hamali_per_kg": 0.0,
-            "fov_insured_percent": 0.0,
-            "damage_claim_percent": 0.0
-        },
-        "routing_logic": {
-            "is_city_specific": false,
-            "zonal_rates": {
-                "forward": {
-                    "z_a": 32.0,
-                    "z_b": 36.00,
-                    "z_c": 42.00,
-                    "z_d": 48.0,
-                    "z_e": 59.0
-                },
-                "additional": {
-                    "z_a": 16.0,
-                    "z_b": 19.0,
-                    "z_c": 22.0,
-                    "z_d": 24.0,
-                    "z_e": 30.0
-                }
-            },
-            "city_rates": null,
-            "door_delivery_slabs": []
-        }
-    },
-    {
-        "carrier_name": "Ekart Air",
-        "type": "Courier",
-        "mode": "Air",
-        "active": true,
-        "logic": "Zonal",
-        "volumetric_divisor": 4500,
-        "min_weight": 0.5,
-        "min_freight": 0.0,
-        "min_frieght_value": 0.0,
-        "fuel_config": {
-            "is_dynamic": false,
-            "base_diesel_price": 0.0,
-            "diesel_ratio": 0.0,
-            "flat_percent": 0.0
-        },
-        "fixed_fees": {
-            "docket_fee": 0.0,
-            "eway_bill_fee": 0.0,
-            "cod_fixed": 26.0,
-            "appointment_delivery": 0.0
-        },
-        "variable_fees": {
-            "cod_percent": 1.4,
-            "hamali_per_kg": 0.0,
-            "fov_insured_percent": 0.0,
-            "damage_claim_percent": 0.0
-        },
-        "routing_logic": {
-            "is_city_specific": false,
-            "zonal_rates": {
-                "forward": {
-                    "z_a": 28.0,
-                    "z_b": 32.00,
-                    "z_c": 55.00,
-                    "z_d": 57.0,
-                    "z_e": 59.0
-                },
-                "additional": {
-                    "z_a": 17.0,
-                    "z_b": 19.0,
-                    "z_c": 48.0,
-                    "z_d": 50.0,
-                    "z_e": 50.0
-                }
-            },
-            "city_rates": null,
-            "door_delivery_slabs": []
-        }
-    },
-    {
-        "carrier_name": "Delhivery Air",
-        "type": "Courier",
-        "mode": "Air",
-        "active": true,
-        "logic": "Zonal",
-        "volumetric_divisor": 4500,
-        "min_weight": 0.5,
-        "min_freight": 0.0,
-        "min_frieght_value": 0.0,
-        "fuel_config": {
-            "is_dynamic": false,
-            "base_diesel_price": 0.0,
-            "diesel_ratio": 0.0,
-            "flat_percent": 0.0
-        },
-        "fixed_fees": {
-            "docket_fee": 0.0,
-            "eway_bill_fee": 0.0,
-            "cod_fixed": 32.0,
-            "appointment_delivery": 0.0
-        },
-        "variable_fees": {
-            "cod_percent": 1.75,
-            "hamali_per_kg": 0.0,
-            "fov_insured_percent": 0.0,
-            "damage_claim_percent": 0.0
-        },
-        "routing_logic": {
-            "is_city_specific": false,
-            "zonal_rates": {
-                "forward": {
-                    "z_a": 30.0,
-                    "z_b": 34.00,
-                    "z_c": 49.00,
-                    "z_d": 58.0,
-                    "z_e": 75.0
-                },
-                "additional": {
-                    "z_a": 30.0,
-                    "z_b": 34.0,
-                    "z_c": 49.0,
-                    "z_d": 58.0,
-                    "z_e": 75.0
-                }
-            },
-            "city_rates": null,
-            "door_delivery_slabs": []
-        }
-    },
-    {
-        "carrier_name": "DTDC Air",
-        "type": "Courier",
-        "mode": "Air",
-        "active": true,
-        "logic": "Zonal",
-        "volumetric_divisor": 4500,
-        "min_weight": 0.5,
-        "min_freight": 0.0,
-        "min_frieght_value": 0.0,
-        "fuel_config": {
-            "is_dynamic": false,
-            "base_diesel_price": 0.0,
-            "diesel_ratio": 0.0,
-            "flat_percent": 0.0
-        },
-        "fixed_fees": {
-            "docket_fee": 0.0,
-            "eway_bill_fee": 0.0,
-            "cod_fixed": 36.0,
-            "appointment_delivery": 0.0
-        },
-        "variable_fees": {
-            "cod_percent": 1.6,
-            "hamali_per_kg": 0.0,
-            "fov_insured_percent": 0.0,
-            "damage_claim_percent": 0.0
-        },
-        "routing_logic": {
-            "is_city_specific": false,
-            "zonal_rates": {
-                "forward": {
-                    "z_a": 32.0,
-                    "z_b": 36.00,
-                    "z_c": 56.00,
-                    "z_d": 60.0,
-                    "z_e": 54.0
-                },
-                "additional": {
-                    "z_a": 16.0,
-                    "z_b": 19.0,
-                    "z_c": 44.0,
-                    "z_d": 46.0,
-                    "z_e": 54.0
-                }
-            },
-            "city_rates": null,
-            "door_delivery_slabs": []
-        }
-    },
-    {
-        "carrier_name": "Delhivery Surface 2kg",
-        "type": "Courier",
-        "mode": "Surface",
-        "active": true,
-        "logic": "Zonal",
-        "volumetric_divisor": 4500,
-        "min_weight": 2.0,
-        "min_freight": 0.0,
-        "min_frieght_value": 0.0,
-        "fuel_config": {
-            "is_dynamic": false,
-            "base_diesel_price": 0.0,
-            "diesel_ratio": 0.0,
-            "flat_percent": 0.0
-        },
-        "fixed_fees": {
-            "docket_fee": 0.0,
-            "eway_bill_fee": 0.0,
-            "cod_fixed": 29.0,
-            "appointment_delivery": 0.0
-        },
-        "variable_fees": {
-            "cod_percent": 1.5,
-            "hamali_per_kg": 0.0,
-            "fov_insured_percent": 0.0,
-            "damage_claim_percent": 0.0
-        },
-        "routing_logic": {
-            "is_city_specific": false,
-            "zonal_rates": {
-                "forward": {
-                    "z_a": 63.0,
-                    "z_b": 82.00,
-                    "z_c": 88.00,
-                    "z_d": 106.0,
-                    "z_e": 173.0
-                },
-                "additional": {
-                    "z_a": 17.0,
-                    "z_b": 19.0,
-                    "z_c": 26.0,
-                    "z_d": 28.0,
-                    "z_e": 44.0
-                }
-            },
-            "city_rates": null,
-            "door_delivery_slabs": []
-        }
-    },
-    {
-        "carrier_name": "Delhivery Surface 5kg",
-        "type": "Courier",
-        "mode": "Surface",
-        "active": true,
-        "logic": "Zonal",
-        "volumetric_divisor": 4500,
-        "min_weight": 5.0,
-        "min_freight": 0.0,
-        "min_frieght_value": 0.0,
-        "fuel_config": {
-            "is_dynamic": false,
-            "base_diesel_price": 0.0,
-            "diesel_ratio": 0.0,
-            "flat_percent": 0.0
-        },
-        "fixed_fees": {
-            "docket_fee": 0.0,
-            "eway_bill_fee": 0.0,
-            "cod_fixed": 29.0,
-            "appointment_delivery": 0.0
-        },
-        "variable_fees": {
-            "cod_percent": 1.5,
-            "hamali_per_kg": 0.0,
-            "fov_insured_percent": 0.0,
-            "damage_claim_percent": 0.0
-        },
-        "routing_logic": {
-            "is_city_specific": false,
-            "zonal_rates": {
-                "forward": {
-                    "z_a": 121.0,
-                    "z_b": 129.00,
-                    "z_c": 133.00,
-                    "z_d": 152.0,
-                    "z_e": 259.0
-                },
-                "additional": {
-                    "z_a": 17.0,
-                    "z_b": 19.0,
-                    "z_c": 26.0,
-                    "z_d": 28.0,
-                    "z_e": 44.0
+                    "z_e": 67.0,
+                    "z_f": 0.0
                 }
             },
             "city_rates": null,
@@ -597,22 +496,25 @@
             "zonal_rates": {
                 "forward": {
                     "z_a": 212.0,
-                    "z_b": 265.00,
-                    "z_c": 306.00,
+                    "z_b": 265.0,
+                    "z_c": 306.0,
                     "z_d": 355.0,
-                    "z_e": 448.0
+                    "z_e": 448.0,
+                    "z_f": 0.0
                 },
                 "additional": {
                     "z_a": 20.0,
                     "z_b": 25.0,
                     "z_c": 28.0,
                     "z_d": 33.0,
-                    "z_e": 41.0
+                    "z_e": 41.0,
+                    "z_f": 0.0
                 }
             },
             "city_rates": null,
             "door_delivery_slabs": []
-        }
+        },
+        "max_weight": 50.0
     },
     {
         "carrier_name": "Delhivery Surface 20kg",
@@ -647,17 +549,279 @@
             "zonal_rates": {
                 "forward": {
                     "z_a": 340.0,
-                    "z_b": 420.00,
-                    "z_c": 472.00,
+                    "z_b": 420.0,
+                    "z_c": 472.0,
                     "z_d": 552.0,
-                    "z_e": 749.0
+                    "z_e": 749.0,
+                    "z_f": 0.0
                 },
                 "additional": {
                     "z_a": 17.0,
                     "z_b": 20.0,
                     "z_c": 21.0,
                     "z_d": 26.0,
-                    "z_e": 35.0
+                    "z_e": 35.0,
+                    "z_f": 0.0
+                }
+            },
+            "city_rates": null,
+            "door_delivery_slabs": []
+        }
+    },
+    {
+        "carrier_name": "Delhivery Surface 2kg",
+        "type": "Courier",
+        "mode": "Surface",
+        "active": true,
+        "logic": "Zonal",
+        "volumetric_divisor": 4500,
+        "min_weight": 2.0,
+        "min_freight": 0.0,
+        "min_frieght_value": 0.0,
+        "fuel_config": {
+            "is_dynamic": false,
+            "base_diesel_price": 0.0,
+            "diesel_ratio": 0.0,
+            "flat_percent": 0.0
+        },
+        "fixed_fees": {
+            "docket_fee": 0.0,
+            "eway_bill_fee": 0.0,
+            "cod_fixed": 29.0,
+            "appointment_delivery": 0.0
+        },
+        "variable_fees": {
+            "cod_percent": 1.5,
+            "hamali_per_kg": 0.0,
+            "fov_insured_percent": 0.0,
+            "damage_claim_percent": 0.0
+        },
+        "routing_logic": {
+            "is_city_specific": false,
+            "zonal_rates": {
+                "forward": {
+                    "z_a": 63.0,
+                    "z_b": 82.0,
+                    "z_c": 88.0,
+                    "z_d": 106.0,
+                    "z_e": 173.0,
+                    "z_f": 0.0
+                },
+                "additional": {
+                    "z_a": 17.0,
+                    "z_b": 19.0,
+                    "z_c": 26.0,
+                    "z_d": 28.0,
+                    "z_e": 44.0,
+                    "z_f": 0.0
+                }
+            },
+            "city_rates": null,
+            "door_delivery_slabs": []
+        }
+    },
+    {
+        "carrier_name": "Delhivery Surface 5kg",
+        "type": "Courier",
+        "mode": "Surface",
+        "active": true,
+        "logic": "Zonal",
+        "volumetric_divisor": 4500,
+        "min_weight": 5.0,
+        "min_freight": 0.0,
+        "min_frieght_value": 0.0,
+        "fuel_config": {
+            "is_dynamic": false,
+            "base_diesel_price": 0.0,
+            "diesel_ratio": 0.0,
+            "flat_percent": 0.0
+        },
+        "fixed_fees": {
+            "docket_fee": 0.0,
+            "eway_bill_fee": 0.0,
+            "cod_fixed": 29.0,
+            "appointment_delivery": 0.0
+        },
+        "variable_fees": {
+            "cod_percent": 1.5,
+            "hamali_per_kg": 0.0,
+            "fov_insured_percent": 0.0,
+            "damage_claim_percent": 0.0
+        },
+        "routing_logic": {
+            "is_city_specific": false,
+            "zonal_rates": {
+                "forward": {
+                    "z_a": 121.0,
+                    "z_b": 129.0,
+                    "z_c": 133.0,
+                    "z_d": 152.0,
+                    "z_e": 259.0,
+                    "z_f": 0.0
+                },
+                "additional": {
+                    "z_a": 17.0,
+                    "z_b": 19.0,
+                    "z_c": 26.0,
+                    "z_d": 28.0,
+                    "z_e": 44.0,
+                    "z_f": 0.0
+                }
+            },
+            "city_rates": null,
+            "door_delivery_slabs": []
+        }
+    },
+    {
+        "carrier_name": "Ekart Air 0.5kg",
+        "type": "Courier",
+        "mode": "Air",
+        "active": true,
+        "logic": "Zonal",
+        "volumetric_divisor": 4500,
+        "min_weight": 0.5,
+        "min_freight": 0.0,
+        "min_frieght_value": 0.0,
+        "fuel_config": {
+            "is_dynamic": false,
+            "base_diesel_price": 0.0,
+            "diesel_ratio": 0.0,
+            "flat_percent": 0.0
+        },
+        "fixed_fees": {
+            "docket_fee": 0.0,
+            "eway_bill_fee": 0.0,
+            "cod_fixed": 26.0,
+            "appointment_delivery": 0.0
+        },
+        "variable_fees": {
+            "cod_percent": 1.4,
+            "hamali_per_kg": 0.0,
+            "fov_insured_percent": 0.0,
+            "damage_claim_percent": 0.0
+        },
+        "routing_logic": {
+            "is_city_specific": false,
+            "zonal_rates": {
+                "forward": {
+                    "z_a": 28.0,
+                    "z_b": 32.0,
+                    "z_c": 55.0,
+                    "z_d": 57.0,
+                    "z_e": 59.0,
+                    "z_f": 0.0
+                },
+                "additional": {
+                    "z_a": 17.0,
+                    "z_b": 19.0,
+                    "z_c": 48.0,
+                    "z_d": 50.0,
+                    "z_e": 50.0,
+                    "z_f": 0.0
+                }
+            },
+            "city_rates": null,
+            "door_delivery_slabs": []
+        }
+    },
+    {
+        "carrier_name": "Ekart Surface 0.5kg",
+        "type": "Courier",
+        "mode": "Surface",
+        "active": true,
+        "logic": "Zonal",
+        "volumetric_divisor": 4500,
+        "min_weight": 0.5,
+        "min_freight": 0.0,
+        "min_frieght_value": 0.0,
+        "fuel_config": {
+            "is_dynamic": false,
+            "base_diesel_price": 0.0,
+            "diesel_ratio": 0.0,
+            "flat_percent": 0.0
+        },
+        "fixed_fees": {
+            "docket_fee": 0.0,
+            "eway_bill_fee": 0.0,
+            "cod_fixed": 26.0,
+            "appointment_delivery": 0.0
+        },
+        "variable_fees": {
+            "cod_percent": 1.4,
+            "hamali_per_kg": 0.0,
+            "fov_insured_percent": 0.0,
+            "damage_claim_percent": 0.0
+        },
+        "routing_logic": {
+            "is_city_specific": false,
+            "zonal_rates": {
+                "forward": {
+                    "z_a": 28.0,
+                    "z_b": 32.0,
+                    "z_c": 35.0,
+                    "z_d": 40.0,
+                    "z_e": 59.0,
+                    "z_f": 0.0
+                },
+                "additional": {
+                    "z_a": 17.0,
+                    "z_b": 19.0,
+                    "z_c": 23.0,
+                    "z_d": 28.0,
+                    "z_e": 50.0,
+                    "z_f": 0.0
+                }
+            },
+            "city_rates": null,
+            "door_delivery_slabs": []
+        }
+    },
+    {
+        "carrier_name": "Shadowfax Surface 0.5kg",
+        "type": "Courier",
+        "mode": "Surface",
+        "active": true,
+        "logic": "Zonal",
+        "volumetric_divisor": 4500,
+        "min_weight": 0.5,
+        "min_freight": 0.0,
+        "min_frieght_value": 0.0,
+        "fuel_config": {
+            "is_dynamic": false,
+            "base_diesel_price": 0.0,
+            "diesel_ratio": 0.0,
+            "flat_percent": 0.0
+        },
+        "fixed_fees": {
+            "docket_fee": 0.0,
+            "eway_bill_fee": 0.0,
+            "cod_fixed": 27.69,
+            "appointment_delivery": 0.0
+        },
+        "variable_fees": {
+            "cod_percent": 0.0188,
+            "hamali_per_kg": 0.0,
+            "fov_insured_percent": 0.0,
+            "damage_claim_percent": 0.0
+        },
+        "routing_logic": {
+            "is_city_specific": false,
+            "zonal_rates": {
+                "forward": {
+                    "z_a": 27.5,
+                    "z_b": 30.0,
+                    "z_c": 36.25,
+                    "z_d": 41.25,
+                    "z_e": 52.5,
+                    "z_f": 0.0
+                },
+                "additional": {
+                    "z_a": 23.75,
+                    "z_b": 26.25,
+                    "z_c": 31.25,
+                    "z_d": 33.75,
+                    "z_e": 37.5,
+                    "z_f": 0.0
                 }
             },
             "city_rates": null,
@@ -671,30 +835,30 @@
         "active": true,
         "logic": "Zonal",
         "zone_mapping": {
-            "Madhya Pradesh": "CTL",
             "Chattishgarh": "CTL",
+            "Madhya Pradesh": "CTL",
             "vidarbha": "CTL",
             "Kolkata": "E1",
-            "Odisha": "E2",
-            "Jharkhand": "E2",
             "Bihar": "E2",
+            "Jharkhand": "E2",
+            "Odisha": "E2",
             "West Bengal": "E2",
-            "Vapi Ahmedabad": "GJ1",
             "Baroda": "GJ1",
+            "Vapi Ahmedabad": "GJ1",
+            "Dadra Nagal Haveli": "GJ2",
             "Gujrat": "GJ2",
-            " Dadra Nagal Haveli": "GJ2",
             "Mumbai": "MH1",
             "Pune": "MH1",
             "Maharashtra": "MH2",
             "Delhi": "N1",
-            "Noida": "N1",
             "Gaziabad": "N1",
-            "Rajasthan": "N2",
+            "Noida": "N1",
             "Haryana": "N2",
-            "Uttar Pradesh": "N2",
-            "Uttarakhand": "N2",
             "Himachal Pradesh": "N2",
             "Punjab": "N2",
+            "Rajasthan": "N2",
+            "Uttar Pradesh": "N2",
+            "Uttarakhand": "N2",
             "Jammu": "N3",
             "Guwahati": "NE1",
             "Siliguri": "NE1",
@@ -702,9 +866,9 @@
             "Chennai": "S1",
             "Hyderabad": "S1",
             "Andhra Pradesh": "S2",
-            "Telangana": "S2",
             "Karnataka": "S2",
             "Tamil Nadu": "S2",
+            "Telangana": "S2",
             "Kerala": "S3",
             "Goa": "W3"
         },
@@ -734,43 +898,43 @@
             "is_city_specific": false,
             "zonal_rates": {
                 "CTL": {
-                    "CTL": 7,
-                    "E1": 10,
-                    "E2": 11,
+                    "CTL": 7.0,
+                    "E1": 10.0,
+                    "E2": 11.0,
                     "GJ1": 7.5,
-                    "GJ2": 8,
-                    "MH1": 8,
+                    "GJ2": 8.0,
+                    "MH1": 8.0,
                     "MH2": 8.5,
                     "N1": 9.5,
                     "N2": 10.5,
                     "N3": 12.5,
-                    "NE1": 15,
-                    "S1": 10,
-                    "S2": 11,
+                    "NE1": 15.0,
+                    "S1": 10.0,
+                    "S2": 11.0,
                     "S3": 12.5,
-                    "W3": 10
+                    "W3": 10.0
                 },
                 "E1": {
-                    "CTL": 9,
-                    "E1": 5,
+                    "CTL": 9.0,
+                    "E1": 5.0,
                     "E2": 6.5,
-                    "GJ1": 10,
+                    "GJ1": 10.0,
                     "GJ2": 10.5,
-                    "MH1": 10,
-                    "MH2": 11,
+                    "MH1": 10.0,
+                    "MH2": 11.0,
                     "N1": 8.5,
                     "N2": 9.5,
                     "N3": 11.5,
                     "NE1": 9.5,
-                    "S1": 11,
+                    "S1": 11.0,
                     "S2": 12.5,
                     "S3": 15.5,
-                    "W3": 12
+                    "W3": 12.0
                 },
                 "E2": {
-                    "CTL": 11,
-                    "E1": 6,
-                    "E2": 6,
+                    "CTL": 11.0,
+                    "E1": 6.0,
+                    "E2": 6.0,
                     "GJ1": 12.5,
                     "GJ2": 12.5,
                     "MH1": 12.5,
@@ -785,212 +949,236 @@
                     "W3": 14.5
                 },
                 "GJ1": {
-                    "CTL": 8,
-                    "E1": 14,
-                    "E2": 16,
-                    "GJ1": 6,
-                    "GJ2": 6,
+                    "CTL": 8.0,
+                    "E1": 14.0,
+                    "E2": 16.0,
+                    "GJ1": 6.0,
+                    "GJ2": 6.0,
                     "MH1": 6.5,
-                    "MH2": 8,
-                    "N1": 9,
-                    "N2": 10,
-                    "N3": 12,
+                    "MH2": 8.0,
+                    "N1": 9.0,
+                    "N2": 10.0,
+                    "N3": 12.0,
                     "NE1": 17.5,
                     "S1": 11.5,
                     "S2": 12.5,
-                    "S3": 13,
+                    "S3": 13.0,
                     "W3": 8.5
                 },
                 "GJ2": {
                     "CTL": 8.5,
-                    "E1": 14,
+                    "E1": 14.0,
                     "E2": 16.5,
-                    "GJ1": 6,
+                    "GJ1": 6.0,
                     "GJ2": 6.5,
                     "MH1": 6.5,
-                    "MH2": 8,
+                    "MH2": 8.0,
                     "N1": 9.5,
                     "N2": 10.5,
                     "N3": 12.5,
                     "NE1": 17.5,
                     "S1": 11.5,
                     "S2": 12.5,
-                    "S3": 13,
+                    "S3": 13.0,
                     "W3": 8.5
                 },
                 "MH1": {
                     "CTL": 9.5,
-                    "E1": 14,
+                    "E1": 14.0,
                     "E2": 16.5,
                     "GJ1": 5.5,
                     "GJ2": 5.5,
-                    "MH1": 5,
+                    "MH1": 5.0,
                     "MH2": 6.5,
-                    "N1": 11,
+                    "N1": 11.0,
                     "N2": 11.5,
                     "N3": 13.5,
-                    "NE1": 18,
-                    "S1": 10,
+                    "NE1": 18.0,
+                    "S1": 10.0,
                     "S2": 10.5,
                     "S3": 12.5,
-                    "W3": 7
+                    "W3": 7.0
                 },
                 "MH2": {
                     "CTL": 9.5,
-                    "E1": 14,
+                    "E1": 14.0,
                     "E2": 17.5,
                     "GJ1": 6.5,
-                    "GJ2": 7,
-                    "MH1": 6,
+                    "GJ2": 7.0,
+                    "MH1": 6.0,
                     "MH2": 6.5,
-                    "N1": 11,
+                    "N1": 11.0,
                     "N2": 11.5,
                     "N3": 13.5,
-                    "NE1": 20,
-                    "S1": 10,
+                    "NE1": 20.0,
+                    "S1": 10.0,
                     "S2": 10.5,
                     "S3": 13.5,
-                    "W3": 8
+                    "W3": 8.0
                 },
                 "N1": {
-                    "CTL": 9,
-                    "E1": 12,
-                    "E2": 13,
-                    "GJ1": 7,
-                    "GJ2": 8,
-                    "MH1": 9,
-                    "MH2": 10,
-                    "N1": 5,
+                    "CTL": 9.0,
+                    "E1": 12.0,
+                    "E2": 13.0,
+                    "GJ1": 7.0,
+                    "GJ2": 8.0,
+                    "MH1": 9.0,
+                    "MH2": 10.0,
+                    "N1": 5.0,
                     "N2": 5.5,
                     "N3": 7.5,
-                    "NE1": 15,
+                    "NE1": 15.0,
                     "S1": 11.5,
                     "S2": 12.5,
-                    "S3": 15,
-                    "W3": 11
+                    "S3": 15.0,
+                    "W3": 11.0
                 },
                 "N2": {
-                    "CTL": 10,
+                    "CTL": 10.0,
                     "E1": 12.5,
                     "E2": 13.5,
-                    "GJ1": 8,
-                    "GJ2": 9,
-                    "MH1": 10,
-                    "MH2": 11,
+                    "GJ1": 8.0,
+                    "GJ2": 9.0,
+                    "MH1": 10.0,
+                    "MH2": 11.0,
                     "N1": 5.5,
                     "N2": 6.5,
                     "N3": 8.5,
                     "NE1": 16.5,
-                    "S1": 12,
+                    "S1": 12.0,
                     "S2": 13.5,
-                    "S3": 15,
-                    "W3": 12
+                    "S3": 15.0,
+                    "W3": 12.0
                 },
                 "N3": {
                     "CTL": 10.5,
                     "E1": 12.5,
                     "E2": 13.5,
-                    "GJ1": 8,
-                    "GJ2": 9,
-                    "MH1": 10,
+                    "GJ1": 8.0,
+                    "GJ2": 9.0,
+                    "MH1": 10.0,
                     "MH2": 11.5,
                     "N1": 5.5,
-                    "N2": 6,
+                    "N2": 6.0,
                     "N3": 5.5,
-                    "NE1": 18,
-                    "S1": 13,
+                    "NE1": 18.0,
+                    "S1": 13.0,
                     "S2": 13.5,
-                    "S3": 16,
-                    "W3": 12
+                    "S3": 16.0,
+                    "W3": 12.0
                 },
                 "NE1": {
                     "CTL": 18.4,
                     "E1": 6.9,
                     "E2": 14.3,
-                    "GJ1": 18,
-                    "GJ2": 18,
-                    "MH1": 18,
-                    "MH2": 18,
-                    "N1": 18,
-                    "N2": 18,
-                    "N3": 18,
-                    "NE1": 10,
-                    "S1": 18,
-                    "S2": 18,
-                    "S3": 19,
-                    "W3": 18
+                    "GJ1": 18.0,
+                    "GJ2": 18.0,
+                    "MH1": 18.0,
+                    "MH2": 18.0,
+                    "N1": 18.0,
+                    "N2": 18.0,
+                    "N3": 18.0,
+                    "NE1": 10.0,
+                    "S1": 18.0,
+                    "S2": 18.0,
+                    "S3": 19.0,
+                    "W3": 18.0
                 },
                 "S1": {
-                    "CTL": 9,
+                    "CTL": 9.0,
                     "E1": 12.5,
-                    "E2": 14,
+                    "E2": 14.0,
                     "GJ1": 8.5,
                     "GJ2": 9.5,
                     "MH1": 7.5,
                     "MH2": 8.5,
                     "N1": 10.5,
-                    "N2": 12,
-                    "N3": 14,
-                    "NE1": 18,
+                    "N2": 12.0,
+                    "N3": 14.0,
+                    "NE1": 18.0,
                     "S1": 5.5,
-                    "S2": 6,
-                    "S3": 7,
-                    "W3": 10
+                    "S2": 6.0,
+                    "S3": 7.0,
+                    "W3": 10.0
                 },
                 "S2": {
                     "CTL": 10.5,
                     "E1": 12.5,
-                    "E2": 14,
+                    "E2": 14.0,
                     "GJ1": 8.5,
                     "GJ2": 9.5,
-                    "MH1": 8,
-                    "MH2": 9,
+                    "MH1": 8.0,
+                    "MH2": 9.0,
                     "N1": 12.5,
                     "N2": 13.5,
                     "N3": 15.5,
-                    "NE1": 18,
-                    "S1": 6,
-                    "S2": 6,
-                    "S3": 9,
-                    "W3": 10
+                    "NE1": 18.0,
+                    "S1": 6.0,
+                    "S2": 6.0,
+                    "S3": 9.0,
+                    "W3": 10.0
                 },
                 "S3": {
                     "CTL": 11.5,
                     "E1": 13.5,
-                    "E2": 15,
+                    "E2": 15.0,
                     "GJ1": 9.5,
                     "GJ2": 10.5,
-                    "MH1": 9,
-                    "MH2": 10,
+                    "MH1": 9.0,
+                    "MH2": 10.0,
                     "N1": 13.5,
                     "N2": 14.5,
                     "N3": 16.5,
-                    "NE1": 19,
+                    "NE1": 19.0,
                     "S1": 6.5,
                     "S2": 7.5,
-                    "S3": 6,
+                    "S3": 6.0,
                     "W3": 11.5
                 },
                 "W3": {
                     "CTL": 10.5,
-                    "E1": 15,
+                    "E1": 15.0,
                     "E2": 17.5,
                     "GJ1": 6.5,
                     "GJ2": 7.5,
-                    "MH1": 6,
+                    "MH1": 6.0,
                     "MH2": 7.5,
-                    "N1": 12,
+                    "N1": 12.0,
                     "N2": 12.5,
                     "N3": 14.5,
-                    "NE1": 18,
-                    "S1": 11,
+                    "NE1": 18.0,
+                    "S1": 11.0,
                     "S2": 11.5,
                     "S3": 13.5,
-                    "W3": 6
+                    "W3": 6.0
                 }
             },
             "city_rates": null,
             "door_delivery_slabs": []
-        }
+        },
+        "max_weight": 99999.0
+    },
+    {
+        "carrier_name": "testcustomzones",
+        "type": "Courier",
+        "mode": "Surface",
+        "active": false,
+        "min_weight": 30.0,
+        "volumetric_divisor": 5000,
+        "logic": "Zonal",
+        "fixed_fees": {
+            "cod_fixed": 100.0
+        },
+        "variable_fees": {
+            "cod_percent": 0.0
+        },
+        "fuel_config": {
+            "flat_percent": 0.0
+        },
+        "routing_logic": {
+            "is_city_specific": false,
+            "zonal_rates": {}
+        },
+        "zone_mapping": {}
     }
 ]

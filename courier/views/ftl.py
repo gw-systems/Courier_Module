@@ -221,6 +221,48 @@ class FTLOrderViewSet(viewsets.ModelViewSet):
             "orders_booked": [order.order_number for order in orders]
         })
 
+    @action(detail=True, methods=['post'], url_path='cancel')
+    def cancel_order(self, request, pk=None):
+        """
+        Cancel an FTL booking.
+        Only BOOKED orders can be cancelled.
+        """
+        order = self.get_object()
+
+        # Cannot cancel orders that are IN_TRANSIT or later
+        if order.status in [OrderStatus.PICKED_UP, OrderStatus.DELIVERED]:
+            return Response(
+                {"detail": f"Cannot cancel order in {order.status} status. Orders in transit or delivered cannot be cancelled."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Can only cancel BOOKED orders
+        if order.status != OrderStatus.BOOKED:
+            return Response(
+                {"detail": f"Can only cancel orders in BOOKED status. Current status: {order.status}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Prevent cancelling already cancelled orders
+        if order.status == OrderStatus.CANCELLED:
+            return Response(
+                {"detail": "Order is already cancelled"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Cancel the order
+        previous_status = order.status
+        order.status = OrderStatus.CANCELLED
+        order.save()
+
+        return Response({
+            "status": "success",
+            "message": f"Order {order.order_number} cancelled successfully",
+            "order_number": order.order_number,
+            "previous_status": previous_status,
+            "current_status": order.status
+        })
+
     def destroy(self, request, *args, **kwargs):
         """Delete an FTL order - allowed for DRAFT or CANCELLED orders"""
         order = self.get_object()

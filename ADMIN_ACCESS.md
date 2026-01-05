@@ -1,11 +1,9 @@
 # Django Admin Access Guide
-
 ## How to Access the Admin Panel
-
 ### 1. Start the Server
 
 ```bash
-python manage.py runserver 8001
+python manage.py runserver 8000
 ```
 
 Or use the quick start script:

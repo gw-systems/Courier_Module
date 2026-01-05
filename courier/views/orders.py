@@ -153,6 +153,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                     continue
 
                 res["mode"] = carrier.get("mode", "Surface")
+                res["applied_zone"] = res.get("zone", "")  # Map zone to applied_zone for frontend
                 res["order_count"] = len(order_ids)
                 res["total_weight"] = total_weight
                 results.append(res)
@@ -246,7 +247,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         for order in orders:
             order.selected_carrier = data['carrier_name']
             order.mode = data['mode']
-            order.zone_applied = cost_result.get("applied_zone", "")
+            order.zone_applied = cost_result.get("zone", "")
             order.total_cost = cost_result["total_cost"]
             order.cost_breakdown = cost_result.get("breakdown", {})
             order.status = OrderStatus.BOOKED

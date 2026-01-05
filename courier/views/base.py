@@ -15,7 +15,7 @@ import os
 import shutil
 import logging
 
-from courier.models import Order, OrderStatus, PaymentMode, FTLOrder
+from courier.models import Order, OrderStatus, PaymentMode, FTLOrder, Courier
 from courier.serializers import (
     OrderSerializer, OrderUpdateSerializer, RateRequestSerializer,
     CarrierSelectionSerializer, NewCarrierSerializer, FTLOrderSerializer,
@@ -46,25 +46,21 @@ def load_rates():
     if rates is not None:
         return rates
     
-    # Cache miss - load from file
+    # Cache miss - load from DB
     try:
-        if not os.path.exists(RATE_CARD_PATH):
-            logger.warning(f"Rate card file not found at {RATE_CARD_PATH}, returning empty list")
-            return []
-
-        with open(RATE_CARD_PATH, "r") as f:
-            rates = json.load(f)
+        couriers = Courier.objects.filter(is_active=True)
+        rates = [c.rate_card for c in couriers]
         
+        if not rates:
+            logger.warning("No active couriers found in database")
+            
         # Store in cache
         cache.set(CACHE_KEY, rates, CACHE_TIMEOUT)
-        logger.info(f"Rate cards loaded and cached ({len(rates)} carriers)")
+        logger.info(f"Rate cards loaded from DB and cached ({len(rates)} carriers)")
         return rates
 
-    except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON in rate card file: {e}")
-        return []
     except Exception as e:
-        logger.error(f"Unexpected error loading rate cards: {e}")
+        logger.error(f"Unexpected error loading rate cards from DB: {e}")
         return []
 
 

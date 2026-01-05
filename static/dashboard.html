@@ -159,7 +159,7 @@
                     </path>
                 </svg>
                 <span
-                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Dashboard</span>
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">Dashboard</span>
             </button>
 
             <!-- Orders Icon -->
@@ -172,7 +172,20 @@
                     </path>
                 </svg>
                 <span
-                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Orders</span>
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">Orders</span>
+            </button>
+
+            <!-- FTL Icon -->
+            <button onclick="showSection('ftl')"
+                class="nav-btn group relative flex items-center justify-center w-12 h-12 rounded-lg hover:bg-white/20 transition-colors"
+                data-section="ftl">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+                <span
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">FTL
+                    Orders</span>
             </button>
 
             <!-- Shipments Icon -->
@@ -185,20 +198,7 @@
                     </path>
                 </svg>
                 <span
-                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Shipments</span>
-            </button>
-
-            <!-- FTL Icon -->
-            <button onclick="showSection('ftl')"
-                class="nav-btn group relative flex items-center justify-center w-12 h-12 rounded-lg hover:bg-white/20 transition-colors"
-                data-section="ftl">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                </svg>
-                <span
-                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">FTL
-                    Orders</span>
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">Shipments</span>
             </button>
 
             <!-- Rate Calculator Link (Bottom) -->
@@ -211,7 +211,7 @@
                     </path>
                 </svg>
                 <span
-                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Rate
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">Rate
                     Calculator</span>
             </button>
         </aside>
@@ -363,6 +363,9 @@
                             <span id="ftl-selected-count" class="text-sm text-slate-600 mr-2"></span>
                             <button onclick="editSelectedFTLOrder()" id="ftl-edit-btn"
                                 class="hidden px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">Edit</button>
+                            <button onclick="cancelSelectedFTLOrders()" id="ftl-cancel-btn"
+                                class="hidden px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors">Cancel
+                                Booking</button>
                             <button onclick="deleteSelectedFTLOrders()" id="ftl-delete-btn"
                                 class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">Delete</button>
                         </div>
@@ -2369,6 +2372,7 @@
             const selectedCount = document.getElementById('ftl-selected-count');
             const editBtn = document.getElementById('ftl-edit-btn');
             const deleteBtn = document.getElementById('ftl-delete-btn');
+            const cancelBtn = document.getElementById('ftl-cancel-btn');
 
             if (selectedFTLOrders.length > 0) {
                 actionsDiv.classList.remove('hidden');
@@ -2379,6 +2383,14 @@
                     editBtn.classList.remove('hidden');
                 } else {
                     editBtn.classList.add('hidden');
+                }
+
+                // Show Cancel only if all selected orders are BOOKED
+                const allBooked = selectedFTLOrders.every(o => o.status === 'booked');
+                if (allBooked) {
+                    cancelBtn.classList.remove('hidden');
+                } else {
+                    cancelBtn.classList.add('hidden');
                 }
 
                 // Show Delete only if all selected orders are DRAFT or CANCELLED
@@ -2410,34 +2422,55 @@
                 const order = await response.json();
                 const form = document.getElementById('createFTLForm');
 
-                // Populate form
+                // Populate fields
                 form.querySelector('[name="name"]').value = order.name || '';
-                form.querySelector('[name="email"]').value = order.email || '';
                 form.querySelector('[name="phone"]').value = order.phone || '';
+                form.querySelector('[name="email"]').value = order.email || '';
                 form.querySelector('[name="source_city"]').value = order.source_city || '';
 
-                // Load destinations and set destination city
-                await loadFTLRatesData();
-                updateFTLDestinations();
-                form.querySelector('[name="destination_city"]').value = order.destination_city || '';
+                // Trigger destination update before setting destination
+                await updateFTLDestinations(true); // Pass true to avoid clearing pricing immediately
 
+                form.querySelector('[name="destination_city"]').value = order.destination_city || '';
                 form.querySelector('[name="source_pincode"]').value = order.source_pincode || '';
+                form.querySelector('[name="source_address"]').value = order.source_address || '';
                 form.querySelector('[name="destination_pincode"]').value = order.destination_pincode || '';
                 form.querySelector('[name="container_type"]').value = order.container_type || '';
                 form.querySelector('[name="notes"]').value = order.notes || '';
 
-                // Calculate and show pricing
-                await calculateFTLRate();
-
-                // Set edit mode
+                // Add edit ID
                 form.dataset.editId = orderId;
                 document.getElementById('ftl-modal-title').textContent = 'Edit FTL Order';
                 document.getElementById('submit-ftl-btn').textContent = 'Update FTL Order';
 
-                showCreateFTLModal();
+                // Show modal
+                document.getElementById('createFTLModal').classList.remove('hidden');
+
+                // Calculate rate to show pricing
+                calculateFTLRate();
+
             } catch (error) {
                 console.error('Edit error:', error);
-                alert('Failed to load FTL order details: ' + error.message);
+                alert('Failed to load order details: ' + error.message);
+            }
+        }
+
+        async function cancelSelectedFTLOrders() {
+            if (!confirm(`Are you sure you want to cancel ${selectedFTLOrders.length} FTL order(s)?`)) return;
+
+            try {
+                const promises = selectedFTLOrders.map(order =>
+                    fetch(`${API_BASE}/api/ftl-orders/${order.id}/cancel/`, { method: 'POST' })
+                );
+
+                await Promise.all(promises);
+                showToast('FTL Orders cancelled successfully!', 'success');
+
+                // Clear selection
+                selectedFTLOrders = [];
+                loadFTLOrders();
+            } catch (error) {
+                showToast('Failed to cancel FTL orders', 'error');
             }
         }
 

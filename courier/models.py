@@ -3,6 +3,206 @@ from django.utils import timezone
 from decimal import Decimal
 
 
+class Courier(models.Model):
+    """
+    Courier model to store rate cards and configuration.
+    Replaces master_card.json.
+    """
+    name = models.CharField(max_length=100, unique=True, verbose_name="Carrier Name")
+    is_active = models.BooleanField(default=True, verbose_name="Active")
+    
+    # Friendly Configuration Fields
+    carrier_type = models.CharField(max_length=20, default="Courier", choices=[("Courier","Courier"),("PTL","PTL")])
+    carrier_mode = models.CharField(max_length=20, default="Surface", choices=[("Surface","Surface"),("Air","Air")])
+    rate_logic = models.CharField(
+        max_length=20, 
+        default="Zonal_Standard", 
+        choices=[
+            ("Zonal_Standard","Zonal (Standard A-F Zones)"),
+            ("Zonal_Custom","Zonal (Custom Zone Matrix)"),
+            ("City_To_City","City to City Routes")
+        ],
+        help_text="Select the routing logic type"
+    )
+    
+    min_weight = models.FloatField(default=0.5, help_text="Min weight in kg")
+    max_weight = models.FloatField(default=99999.0, help_text="Max weight in kg")
+    volumetric_divisor = models.IntegerField(default=5000, help_text="e.g. 5000 or 4500")
+    
+    cod_charge_fixed = models.FloatField(default=0.0, verbose_name="COD Fixed Fee")
+    cod_charge_percent = models.FloatField(default=0.0, verbose_name="COD % (ratio, e.g. 0.015)")
+    fuel_surcharge_percent = models.FloatField(default=0.0, verbose_name="Fuel Surcharge % (ratio)")
+
+    # Forward Rates (Zonal_Standard only)
+    fwd_z_a = models.FloatField(default=0.0, verbose_name="Fwd Zone A", blank=True)
+    fwd_z_b = models.FloatField(default=0.0, verbose_name="Fwd Zone B", blank=True)
+    fwd_z_c = models.FloatField(default=0.0, verbose_name="Fwd Zone C", blank=True)
+    fwd_z_d = models.FloatField(default=0.0, verbose_name="Fwd Zone D", blank=True)
+    fwd_z_e = models.FloatField(default=0.0, verbose_name="Fwd Zone E", blank=True)
+    fwd_z_f = models.FloatField(default=0.0, verbose_name="Fwd Zone F", blank=True)
+
+    # Additional Rates (Zonal_Standard only)
+    add_z_a = models.FloatField(default=0.0, verbose_name="Add Zone A", blank=True)
+    add_z_b = models.FloatField(default=0.0, verbose_name="Add Zone B", blank=True)
+    add_z_c = models.FloatField(default=0.0, verbose_name="Add Zone C", blank=True)
+    add_z_d = models.FloatField(default=0.0, verbose_name="Add Zone D", blank=True)
+    add_z_e = models.FloatField(default=0.0, verbose_name="Add Zone E", blank=True)
+    add_z_f = models.FloatField(default=0.0, verbose_name="Add Zone F", blank=True)
+
+    # The raw JSON - source of truth for engine, updated by fields below
+    rate_card = models.JSONField(help_text="Full rate card logic (JSON)", blank=True, default=dict)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'couriers'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        # Ensure rate_card is a dict
+        if not self.rate_card or not isinstance(self.rate_card, dict):
+            self.rate_card = {}
+            
+        def set_val(d, keys, val):
+            for k in keys[:-1]:
+                d = d.setdefault(k, {})
+            d[keys[-1]] = val
+
+        # Sync Basic Info
+        self.rate_card['carrier_name'] = self.name
+        self.rate_card['type'] = self.carrier_type
+        self.rate_card['mode'] = self.carrier_mode
+        self.rate_card['active'] = self.is_active
+        self.rate_card['min_weight'] = self.min_weight
+        self.rate_card['max_weight'] = self.max_weight
+        self.rate_card['volumetric_divisor'] = self.volumetric_divisor
+        
+        # Sync logic type to JSON format
+        if self.rate_logic == 'City_To_City':
+            self.rate_card['logic'] = 'city_to_city'
+        else:
+            self.rate_card['logic'] = 'Zonal'
+        
+        # Fees & Config
+        set_val(self.rate_card, ['fixed_fees', 'cod_fixed'], float(self.cod_charge_fixed))
+        set_val(self.rate_card, ['variable_fees', 'cod_percent'], float(self.cod_charge_percent))
+        set_val(self.rate_card, ['fuel_config', 'flat_percent'], float(self.fuel_surcharge_percent))
+        
+        # Routing Logic based on type
+        if self.rate_logic == 'Zonal_Standard':
+            # Standard A-F Zones
+            self.rate_card.setdefault('routing_logic', {})
+            self.rate_card['routing_logic']['is_city_specific'] = False
+            self.rate_card['routing_logic'].setdefault('zonal_rates', {})
+            
+            fwd = {
+                'z_a': self.fwd_z_a, 'z_b': self.fwd_z_b, 'z_c': self.fwd_z_c,
+                'z_d': self.fwd_z_d, 'z_e': self.fwd_z_e, 'z_f': self.fwd_z_f,
+            }
+            set_val(self.rate_card, ['routing_logic', 'zonal_rates', 'forward'], fwd)
+            
+            add = {
+                'z_a': self.add_z_a, 'z_b': self.add_z_b, 'z_c': self.add_z_c,
+                'z_d': self.add_z_d, 'z_e': self.add_z_e, 'z_f': self.add_z_f,
+            }
+            set_val(self.rate_card, ['routing_logic', 'zonal_rates', 'additional'], add)
+
+        super().save(*args, **kwargs)
+        
+        # After saving, sync related models to JSON
+        if self.pk:
+            if self.rate_logic == 'City_To_City':
+                self._sync_city_routes_to_json()
+            elif self.rate_logic == 'Zonal_Custom':
+                self._sync_custom_zones_to_json()
+    
+    def _sync_city_routes_to_json(self):
+        """Sync CityRoute objects to rate_card JSON"""
+        city_rates = {}
+        for route in self.city_routes.all():
+            city_rates[route.city_name.lower()] = route.rate_per_kg
+        
+        if not self.rate_card.get('routing_logic'):
+            self.rate_card['routing_logic'] = {}
+        self.rate_card['routing_logic']['is_city_specific'] = True
+        self.rate_card['routing_logic']['city_rates'] = city_rates
+        self.rate_card['routing_logic']['zonal_rates'] = []
+        
+        # Save without triggering infinite loop
+        Courier.objects.filter(pk=self.pk).update(rate_card=self.rate_card)
+    
+    def _sync_custom_zones_to_json(self):
+        """Sync CustomZone and CustomZoneRate objects to rate_card JSON"""
+        zone_mapping = {}
+        for zone in self.custom_zones.all():
+            zone_mapping[zone.location_name] = zone.zone_code
+        
+        zonal_rates = {}
+        for rate in self.custom_zone_rates.all():
+            if rate.from_zone not in zonal_rates:
+                zonal_rates[rate.from_zone] = {}
+            zonal_rates[rate.from_zone][rate.to_zone] = rate.rate_per_kg
+        
+        if not self.rate_card.get('routing_logic'):
+            self.rate_card['routing_logic'] = {}
+        self.rate_card['routing_logic']['is_city_specific'] = False
+        self.rate_card['zone_mapping'] = zone_mapping
+        self.rate_card['routing_logic']['zonal_rates'] = zonal_rates
+        
+        # Save without triggering infinite loop
+        Courier.objects.filter(pk=self.pk).update(rate_card=self.rate_card)
+
+
+class CityRoute(models.Model):
+    """City-to-City routing rates"""
+    courier = models.ForeignKey(Courier, on_delete=models.CASCADE, related_name='city_routes')
+    city_name = models.CharField(max_length=100, verbose_name="City/Destination")
+    rate_per_kg = models.FloatField(verbose_name="Rate (per kg)")
+    
+    class Meta:
+        db_table = 'city_routes'
+        unique_together = ['courier', 'city_name']
+        ordering = ['city_name']
+    
+    def __str__(self):
+        return f"{self.courier.name} - {self.city_name}"
+
+
+class CustomZone(models.Model):
+    """Custom zone mapping (location to zone code)"""
+    courier = models.ForeignKey(Courier, on_delete=models.CASCADE, related_name='custom_zones')
+    location_name = models.CharField(max_length=100, help_text="State/City/Region name")
+    zone_code = models.CharField(max_length=20, help_text="Zone code (e.g. CTL, E1, MH1)")
+    
+    class Meta:
+        db_table = 'custom_zones'
+        unique_together = ['courier', 'location_name']
+        ordering = ['zone_code', 'location_name']
+    
+    def __str__(self):
+        return f"{self.location_name} → {self.zone_code}"
+
+
+class CustomZoneRate(models.Model):
+    """Custom zone matrix rates (from zone to zone)"""
+    courier = models.ForeignKey(Courier, on_delete=models.CASCADE, related_name='custom_zone_rates')
+    from_zone = models.CharField(max_length=20, verbose_name="From Zone")
+    to_zone = models.CharField(max_length=20, verbose_name="To Zone")
+    rate_per_kg = models.FloatField(verbose_name="Rate (per kg)")
+    
+    class Meta:
+        db_table = 'custom_zone_rates'
+        unique_together = ['courier', 'from_zone', 'to_zone']
+        ordering = ['from_zone', 'to_zone']
+    
+    def __str__(self):
+        return f"{self.from_zone} → {self.to_zone}: ₹{self.rate_per_kg}"
+
+
 class OrderStatus(models.TextChoices):
     DRAFT = "draft", "Draft"
     BOOKED = "booked", "Booked / Ready to Ship"
