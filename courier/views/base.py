@@ -15,15 +15,17 @@ import os
 import shutil
 import logging
 
-from courier.models import Order, OrderStatus, PaymentMode, FTLOrder, Courier
 from courier.serializers import (
     OrderSerializer, OrderUpdateSerializer, RateRequestSerializer,
     CarrierSelectionSerializer, NewCarrierSerializer, FTLOrderSerializer,
     FTLRateRequestSerializer
 )
 from courier.permissions import IsAdminToken
-from courier.engine import calculate_cost, SETTINGS
+
+from courier.engine import calculate_cost
 from courier.zones import get_zone_column, PINCODE_LOOKUP
+from courier.models import Order, OrderStatus, PaymentMode, FTLOrder, Courier, SystemConfig
+
 
 logger = logging.getLogger('courier')
 
@@ -48,8 +50,10 @@ def load_rates():
     
     # Cache miss - load from DB
     try:
-        couriers = Courier.objects.filter(is_active=True)
-        rates = [c.rate_card for c in couriers]
+        couriers = Courier.objects.filter(is_active=True).prefetch_related(
+            'city_routes', 'delivery_slabs', 'custom_zones', 'custom_zone_rates'
+        )
+        rates = [c.get_rate_dict() for c in couriers]
         
         if not rates:
             logger.warning("No active couriers found in database")
@@ -164,8 +168,9 @@ def calculate_ftl_price(base_price):
     Formula: base_price + escalation, then add GST
     Uses rates from global settings.
     """
-    ESCALATION_RATE = SETTINGS.get("ESCALATION_RATE", 0.15)
-    GST_RATE = SETTINGS.get("GST_RATE", 0.18)
+    conf = SystemConfig.get_solo()
+    ESCALATION_RATE = float(conf.escalation_rate)
+    GST_RATE = float(conf.gst_rate)
     
     escalation_amount = base_price * ESCALATION_RATE
     price_with_escalation = base_price + escalation_amount

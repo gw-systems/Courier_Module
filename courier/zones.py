@@ -1,6 +1,10 @@
 import pandas as pd
 import json
 import os
+import logging
+
+# Configure module logger
+logger = logging.getLogger('courier')
 
 # --- 1. CONFIGURATION LOADING ---
 def load_config(filename):
@@ -19,7 +23,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "pincode_master.csv"
 
 def initialize_pincode_lookup():
     if not os.path.exists(DATA_PATH):
-        print(f"CRITICAL ERROR: Database not found at {DATA_PATH}")
+        logger.critical(f"Database not found at {DATA_PATH}")
         return {}
 
     try:
@@ -30,7 +34,7 @@ def initialize_pincode_lookup():
         temp_df = temp_df.drop_duplicates(subset=["pincode"], keep="first")
         return temp_df.set_index("pincode").to_dict("index")
     except Exception as e:
-        print(f"CRITICAL ERROR: Failed to initialize pincode lookup: {e}")
+        logger.critical(f"Failed to initialize pincode lookup: {e}")
         return {}
 
 PINCODE_LOOKUP = initialize_pincode_lookup()
@@ -88,7 +92,50 @@ def is_metro(location_dict):
     return any(metro in city or metro in district for metro in METRO_CITIES)
 
 
-# --- 4. UNIFIED ZONE LOGIC ---
+
+# --- 5. CSV REGION LOGIC (Generic) ---
+CSV_CACHE = {}
+
+def get_csv_region_details(pincode: int, csv_filename: str = "BlueDart_Servicable Pincodes.csv"):
+    global CSV_CACHE
+    
+    # Key by filename
+    if csv_filename not in CSV_CACHE:
+        path = os.path.join(os.path.dirname(__file__), "data", csv_filename)
+        
+        # Fallback to base dir if not found (for robustness)
+        if not os.path.exists(path):
+             # Try assuming path is relative to project root if needed, but let's stick to courier/data
+             pass
+
+        if not os.path.exists(path):
+             logger.error(f"CSV not found at {path}")
+             CSV_CACHE[csv_filename] = {}
+        else:
+            try:
+                 df = pd.read_csv(path)
+                 # Strip whitespace
+                 df.columns = df.columns.str.strip()
+                 df_obj = df.select_dtypes(['object'])
+                 df[df_obj.columns] = df_obj.apply(lambda x: x.str.strip())
+                 # Cache valid pincodes
+                 # Pincode column might be "Pincode" or "PINCODE" - standardize?
+                 # Example CSV has "PINCODE". 
+                 if "PINCODE" in df.columns:
+                    CSV_CACHE[csv_filename] = df.set_index("PINCODE").to_dict("index")
+                 elif "Pincode" in df.columns:
+                    CSV_CACHE[csv_filename] = df.set_index("Pincode").to_dict("index")
+                 else:
+                     # Fallback to first column?
+                     CSV_CACHE[csv_filename] = df.set_index(df.columns[0]).to_dict("index")
+                     
+            except Exception as e:
+                 logger.error(f"Error loading CSV {path}: {e}")
+                 CSV_CACHE[csv_filename] = {}
+
+    return CSV_CACHE[csv_filename].get(pincode)
+
+# --- 4. UNIFIED ZONE LOGIC (UPDATED) ---
 def get_zone(source_pincode: int, dest_pincode: int, carrier_config: dict):
     """
     Determines the Zone Identifier based on Carrier Logic.
@@ -97,44 +144,83 @@ def get_zone(source_pincode: int, dest_pincode: int, carrier_config: dict):
     s_loc = get_location_details(source_pincode)
     d_loc = get_location_details(dest_pincode)
 
+    routing = carrier_config.get("routing_logic", {})
+    logic_type = routing.get("type")
+
+    # --- LOGIC 4: CSV REGION (Blue Dart / Others) ---
+    if logic_type == "pincode_region_csv":
+         csv_file = routing.get("csv_file", "BlueDart_Servicable Pincodes.csv")
+         details = get_csv_region_details(dest_pincode, csv_file)
+         if not details:
+              return None, "Pincode Not Found in Carrier DB", logic_type
+         
+         if details.get("Embargo") == "Y":
+              return None, "Embargo (Not Servicable)", logic_type
+
+         # Return the Region as Zone ID (e.g., "NORTH", "SOUTH")
+         # And include the full details for the engine to use (EDL, etc.)
+         # We cheat a bit and return the details dict as part of the zone_id or handle it in engine?
+         # Standard signature returns: zone_id, zone_desc, logic_type.
+         # The engine calls this. We will return the Region String, but we need to pass EDL info provided by this lookup.
+         # BUT `get_zone` returns simple strings usually. 
+         # We can return a tuple or dict as zone_id? Or let engine re-fetch?
+         # Engine calls `zones.get_zone`. 
+         # Let's return the Region string, but also attach the metadata to the carrier_data in the engine? 
+         # No, `get_zone` is clean. 
+         # We'll modify `engine.py` to call `get_bluedart_details` if needed, OR we return the details in the ID.
+         # Let's return the details dict as the ID? No, that breaks simple logic.
+         # We will return the Region Name.
+         # The Engine will have to do a specific check or we return a rich object.
+         # Let's return (RegionName, DetailsDict) as zone_id? 
+         # Engine expects zone_id to lookup rates. Rates key is "NORTH". 
+         # So zone_id MUST be "NORTH".
+         
+         # We will make the Engine responsible for fetching extra details if logic_type is csv, 
+         # OR we pass it in description? No.
+         
+         # Let's trust the engine update step to call `get_bluedart_details` again? 
+         # Iterate implementation: Engine calls `zones.get_zone`. 
+         # If `logic_type` is `pincode_region_csv`, we assume we need to re-fetch details in engine for EDL? 
+         # Or we optimize and cache. Since we cache the DF, it's fast.
+         
+         return details.get("REGION"), f"Region: {details.get('REGION')}", logic_type
+
     if not s_loc or not d_loc:
         return None, "Invalid Pincode", None
-
-    routing = carrier_config.get("routing_logic", {})
     
-    # --- LOGIC 1: CITY-TO-CITY (e.g., ACPL) ---
+    # --- LOGIC 1: CITY-TO-CITY via CSV (e.g., ACPL) ---
+    # ACPL routes are bidirectional: Bhiwandi <-> Serviceable City
+    # Uses ACPL_Serviceable_Pincodes.csv for pincode-to-city mapping
     if routing.get("is_city_specific"):
-        city_rates = routing.get("city_rates", {})
-        # Check Destination City Match
-        # Try both normalized and original just in case, but prefer normalized
-        dest_city = d_loc["city"]
+        csv_file = routing.get("pincode_csv", "ACPL_Serviceable_Pincodes.csv")
+        hub_city = routing.get("hub_city", "bhiwandi")
         
-        # Exact match check
-        if dest_city in city_rates:
-            return dest_city, f"City Match: {dest_city}", "city_specific"
-            
-        # Fallback 1: Check District (e.g. "Mumbai" matching "MPT SO")
-        if d_loc["district"] in city_rates:
-            return d_loc["district"], f"City Match: {d_loc['district']}", "city_specific"
-            
-        # Fallback 2: check original name if normalization was too aggressive
-        if d_loc["original_city"] in city_rates:
-             return d_loc["original_city"], f"City Match: {d_loc['original_city']}", "city_specific"
-             
-        return None, "City Not Servicable", "city_specific"
+        # Look up both pincodes in the CSV
+        source_details = get_csv_region_details(source_pincode, csv_file)
+        dest_details = get_csv_region_details(dest_pincode, csv_file)
+        
+        # Get city names from CSV (column is 'CITY')
+        source_city = source_details.get("CITY", "").lower() if source_details else None
+        dest_city = dest_details.get("CITY", "").lower() if dest_details else None
+        
+        source_is_hub = source_city == hub_city if source_city else False
+        dest_is_hub = dest_city == hub_city if dest_city else False
+        
+        # New Logic: Just check if we can identify the cities.
+        if source_city and dest_city:
+             # Return valid zone_id for lookup (we use dest_city as key usually? or source_city? 
+             # Matrix uses Origin/Dest tuple. City Specific usually uses just Dest?
+             # existing logic returned dest_city if source was hub.
+             # If we want Pune -> Mumbai, we need to return 'mumbai' as zone_id?
+             # And ensure rate card has 'mumbai'.
+             return dest_city, f"City Match: {source_city} -> {dest_city}", "city_specific"
+        
+        return None, "Cities not identified in service list", "city_specific"
 
     # --- LOGIC 2: CARRIER SPECIFIC ZONE MATRIX (e.g., V-Trans) ---
     zone_map = carrier_config.get("zone_mapping")
     if zone_map:
         # 1. Map Source State/City to Origin Zone
-        # Try State first, then City if needed (not implemented here, assuming State based for V-Trans)
-        
-        # Check aliases for keys in zone_map would be expensive. 
-        # Ideally, zone_map keys should match our normalized names. 
-        # Strategy: Iterate zone_map keys and check if s_loc['state'] is an alias/match for that key.
-        # However, to be fast, we use our Normalize Name to unify them.
-        # Assuming V-Trans keys like "Maharashtra" map to our normalized "maharashtra" (or we update alias map to match V-Trans).
-        # BETTER: Use helper to find map key.
         
         def find_mapped_zone(loc_details, mapping):
             # Check State
@@ -187,3 +273,4 @@ def get_zone_column(source_pincode: int, dest_pincode: int):
     
     zone_id, desc, logic = get_zone(source_pincode, dest_pincode, dummy_config)
     return zone_id, desc
+

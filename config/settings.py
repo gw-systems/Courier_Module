@@ -110,12 +110,33 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "logistics.db",  # Use existing database name
+# Use PostgreSQL if DB_NAME is set, otherwise fall back to SQLite
+if os.getenv('DB_NAME'):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv('DB_NAME', 'courier_db'),
+            "USER": os.getenv('DB_USER', 'courier_user'),
+            "PASSWORD": os.getenv('DB_PASSWORD', 'courier_pass'),
+            "HOST": os.getenv('DB_HOST', 'localhost'),
+            "PORT": os.getenv('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    # Fallback to SQLite for backward compatibility
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "logistics.db",
+        }
+    }
+    
+    # Block SQLite in production - PostgreSQL is required for reliability and performance
+    if ENVIRONMENT == 'production':
+        raise RuntimeError(
+            "CRITICAL: SQLite is not allowed in production! "
+            "Configure PostgreSQL by setting DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, and DB_PORT environment variables."
+        )
 
 
 # Password validation

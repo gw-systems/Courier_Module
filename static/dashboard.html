@@ -33,110 +33,8 @@
             }
         }
     </script>
-    <style>
-        /* Loading Spinner */
-        .spinner {
-            border: 3px solid #e2e8f0;
-            border-top: 3px solid #1e3a8a;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 0.8s linear infinite;
-        }
-
-        .spinner-lg {
-            width: 48px;
-            height: 48px;
-            border-width: 4px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Skeleton Loader */
-        .skeleton {
-            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            0% {
-                background-position: 200% 0;
-            }
-
-            100% {
-                background-position: -200% 0;
-            }
-        }
-
-        /* Toast notification styles */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-
-        .toast {
-            pointer-events: auto;
-            min-width: 300px;
-            max-width: 450px;
-            padding: 16px 20px;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .toast.removing {
-            animation: slideOut 0.3s ease-in forwards;
-        }
-
-        .toast-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-
-        .toast-error {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-
-        .toast-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-        }
-
-        .toast-info {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-        }
-
-        .toast-close {
-            margin-left: auto;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-
-        .toast-close:hover {
-            opacity: 1;
-        }
-    </style>
+    <!-- Custom dashboard styles - extracted for maintainability -->
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 
 <body class="bg-white font-sans antialiased">
@@ -203,8 +101,9 @@
 
             <!-- Rate Calculator Link (Bottom) -->
             <div class="flex-grow"></div>
-            <button onclick="showSection('dashboard')"
-                class="group relative flex items-center justify-center w-12 h-12 rounded-lg bg-green-500 hover:bg-green-600 transition-colors">
+            <button onclick="showSection('rate-calculator')"
+                class="nav-btn group relative flex items-center justify-center w-12 h-12 rounded-lg bg-green-500 hover:bg-green-600 transition-colors"
+                data-section="rate-calculator">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
@@ -446,6 +345,223 @@
                             </div>
                             <div id="shipment-ftl-orders-list"
                                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rate Calculator Section -->
+                <div id="section-rate-calculator" class="content-section hidden">
+                    <div class="max-w-4xl mx-auto">
+                        <!-- Tab Switcher -->
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 mb-6 p-1 inline-flex">
+                            <button onclick="switchCalculatorTab('regular')"
+                                class="calc-tab-btn px-6 py-2.5 text-sm font-medium rounded-md bg-brand-blue text-white shadow-sm transition-colors"
+                                data-tab="regular">
+                                Regular Rate
+                            </button>
+                            <button onclick="switchCalculatorTab('ftl')"
+                                class="calc-tab-btn px-6 py-2.5 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 transition-colors"
+                                data-tab="ftl">
+                                FTL Rate
+                            </button>
+                        </div>
+
+                        <!-- Regular Calculator -->
+                        <div id="calc-regular-tab"
+                            class="calc-tab-content bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-brand-blue" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                                Regular Shipment Calculator
+                            </h2>
+
+                            <form id="regular-calc-form" onsubmit="calculateRegularRate(event)" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Origin & Dest -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Source
+                                            Pincode</label>
+                                        <input type="text" name="source_pincode" required maxlength="6"
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-shadow"
+                                            placeholder="e.g. 400001"
+                                            oninput="this.value = this.value.replace(/\D/g, '')">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Destination
+                                            Pincode</label>
+                                        <input type="text" name="dest_pincode" required maxlength="6"
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-shadow"
+                                            placeholder="e.g. 110001"
+                                            oninput="this.value = this.value.replace(/\D/g, '')">
+                                    </div>
+
+                                    <!-- Dimensions & Weight -->
+                                    <div class="md:col-span-2">
+                                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                            <h3 class="text-sm font-semibold text-slate-700 mb-3">Dimensions &
+                                                Weight</h3>
+                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-500 mb-1">Weight
+                                                        (kg)</label>
+                                                    <input type="number" name="weight" id="calc_weight" required
+                                                        step="0.01" min="0.01"
+                                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-1 focus:ring-brand-blue"
+                                                        onchange="calculateCalcWeights()">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-500 mb-1">Length
+                                                        (cm)</label>
+                                                    <input type="number" name="length" id="calc_length" required
+                                                        step="0.1" min="0.1" value="10"
+                                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-1 focus:ring-brand-blue"
+                                                        onchange="calculateCalcWeights()">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-500 mb-1">Width
+                                                        (cm)</label>
+                                                    <input type="number" name="width" id="calc_width" required
+                                                        step="0.1" min="0.1" value="10"
+                                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-1 focus:ring-brand-blue"
+                                                        onchange="calculateCalcWeights()">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-500 mb-1">Height
+                                                        (cm)</label>
+                                                    <input type="number" name="height" id="calc_height" required
+                                                        step="0.1" min="0.1" value="10"
+                                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-1 focus:ring-brand-blue"
+                                                        onchange="calculateCalcWeights()">
+                                                </div>
+                                            </div>
+                                            <div class="mt-3 flex justify-between text-xs text-slate-500">
+                                                <span>Volumetric: <strong id="calc_vol_display">0.2
+                                                        kg</strong></span>
+                                                <span>Applicable: <strong id="calc_appl_display"
+                                                        class="text-green-600">0.2 kg</strong></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment Details -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Payment
+                                            Mode</label>
+                                        <select name="is_cod"
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent bg-white">
+                                            <option value="false">Prepaid</option>
+                                            <option value="true">COD (Cash on Delivery)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Order Value
+                                            <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                        <input type="number" name="order_value" value="0" min="0" step="0.01"
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-shadow">
+                                    </div>
+                                </div>
+
+                                <div class="pt-4">
+                                    <button type="submit"
+                                        class="w-full md:w-auto px-8 py-3 bg-brand-blue text-white font-semibold rounded-lg hover:bg-blue-900 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
+                                        Calculate Rates
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Results -->
+                            <div id="calc-regular-results"
+                                class="hidden mt-8 border-t border-slate-200 pt-8 animate-slide-in">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4">Available Services</h3>
+                                <div id="calc-regular-list" class="space-y-3">
+                                    <!-- Results injected here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FTL Calculator -->
+                        <div id="calc-ftl-tab"
+                            class="calc-tab-content bg-white rounded-lg shadow-sm border border-slate-200 p-6 hidden">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-brand-blue" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                </svg>
+                                FTL Rate Calculator
+                            </h2>
+
+                            <form id="ftl-calc-form" onsubmit="calculateFTLRateSubmit(event)" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Source
+                                            City</label>
+                                        <select name="source_city" id="calc-ftl-source" required
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue"
+                                            onchange="updateCalcFTLDestinations()">
+                                            <option value="">Select Source</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Destination
+                                            City</label>
+                                        <select name="destination_city" id="calc-ftl-dest" required
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue"
+                                            onchange="updateCalcFTLContainerTypes()">
+                                            <option value="">Select Destination</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Container
+                                            Type</label>
+                                        <select name="container_type" id="calc-ftl-container" required
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue">
+                                            <option value="">Select Container</option>
+                                            <!-- Options will be loaded dynamically based on source-destination selection -->
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4">
+                                    <button type="submit"
+                                        class="w-full md:w-auto px-8 py-3 bg-brand-blue text-white font-semibold rounded-lg hover:bg-blue-900 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
+                                        Calculate FTL Rate
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Results -->
+                            <div id="calc-ftl-results"
+                                class="hidden mt-8 border-t border-slate-200 pt-8 animate-slide-in">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4">Estimated Cost</h3>
+                                <div class="bg-blue-50 rounded-lg p-6 max-w-md border border-blue-100">
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center text-slate-600">
+                                            <span>Base Price</span>
+                                            <span class="font-semibold text-slate-800" id="calc-ftl-base">₹0.00</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-slate-600">
+                                            <span>GST (18%)</span>
+                                            <span class="font-semibold text-slate-800" id="calc-ftl-gst">₹0.00</span>
+                                        </div>
+                                        <div class="pt-3 border-t border-blue-200 flex justify-between items-center">
+                                            <span class="font-bold text-slate-800 text-lg">Total Cost</span>
+                                            <span class="font-bold text-brand-blue text-xl"
+                                                id="calc-ftl-total">₹0.00</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                                        * This is an estimate used for creating orders. Actual charges may vary
+                                        based on market conditions.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -824,7 +940,8 @@
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Destination City *</label>
                             <select name="destination_city" id="ftl-destination-city" required
-                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent">
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onchange="updateFTLContainerTypes()">
                                 <option value="">Select Destination City</option>
                             </select>
                         </div>
@@ -846,9 +963,7 @@
                             class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
                             onchange="calculateFTLRate()">
                             <option value="">Select Container Type</option>
-                            <option value="20FT">20FT</option>
-                            <option value="32 FT SXL 7MT">32 FT SXL 7MT</option>
-                            <option value="32 FT SXL 9MT">32 FT SXL 9MT</option>
+                            <!-- Options will be loaded dynamically based on source-destination selection -->
                         </select>
                     </div>
                 </div>
@@ -2164,12 +2279,15 @@
         function updateFTLDestinations() {
             const sourceCity = document.getElementById('ftl-source-city').value;
             const destSelect = document.getElementById('ftl-destination-city');
+            const containerSelect = document.getElementById('ftl-container-type');
 
             destSelect.innerHTML = '<option value="">Select Destination City</option>';
+            containerSelect.innerHTML = '<option value="">Select Container Type</option>';
 
             if (sourceCity && ftlRatesData[sourceCity]) {
                 const destinations = ftlRatesData[sourceCity];
-                destinations.forEach(dest => {
+                // ftlRatesData[sourceCity] is an object with destination cities as keys
+                Object.keys(destinations).forEach(dest => {
                     const option = document.createElement('option');
                     option.value = dest;
                     option.textContent = dest;
@@ -2178,6 +2296,29 @@
             }
 
             // Clear pricing when source changes
+            document.getElementById('ftl-pricing-breakdown').classList.add('hidden');
+        }
+
+        // Update container types based on source and destination selection
+        function updateFTLContainerTypes() {
+            const sourceCity = document.getElementById('ftl-source-city').value;
+            const destCity = document.getElementById('ftl-destination-city').value;
+            const containerSelect = document.getElementById('ftl-container-type');
+
+            containerSelect.innerHTML = '<option value="">Select Container Type</option>';
+
+            if (sourceCity && destCity && ftlRatesData[sourceCity] && ftlRatesData[sourceCity][destCity]) {
+                // ftlRatesData[sourceCity][destCity] is an array of container types
+                const containerTypes = ftlRatesData[sourceCity][destCity];
+                containerTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    containerSelect.appendChild(option);
+                });
+            }
+
+            // Clear pricing when destination changes
             document.getElementById('ftl-pricing-breakdown').classList.add('hidden');
         }
 
@@ -2204,15 +2345,14 @@
                 });
 
                 if (response.ok) {
-                    const pricing = await response.json();
-
-                    document.getElementById('ftl-base-price').textContent = `₹${pricing.base_price.toFixed(2)}`;
-                    document.getElementById('ftl-escalation').textContent = `₹${pricing.escalation_amount.toFixed(2)}`;
-                    document.getElementById('ftl-price-escalation').textContent = `₹${pricing.price_with_escalation.toFixed(2)}`;
-                    document.getElementById('ftl-gst').textContent = `₹${pricing.gst_amount.toFixed(2)}`;
-                    document.getElementById('ftl-total-price').textContent = `₹${pricing.total_price.toFixed(2)}`;
-
+                    const data = await response.json();
                     document.getElementById('ftl-pricing-breakdown').classList.remove('hidden');
+                    // Populate full breakdown as present in HTML
+                    if (data.base_price) document.getElementById('ftl-base-price').textContent = '₹' + data.base_price.toFixed(2);
+                    if (data.escalation_amount) document.getElementById('ftl-escalation').textContent = '₹' + data.escalation_amount.toFixed(2);
+                    document.getElementById('ftl-price-escalation').textContent = '₹' + data.price_with_escalation.toFixed(2);
+                    document.getElementById('ftl-gst').textContent = '₹' + data.gst_amount.toFixed(2);
+                    document.getElementById('ftl-total-price').textContent = '₹' + data.total_price.toFixed(2);
                 } else {
                     const error = await response.json();
                     alert(`Error: ${error.detail}`);
@@ -2741,8 +2881,239 @@
             }
         }
 
+        // ============================================================================
+        // RATE CALCULATOR FUNCTIONALITY
+        // ============================================================================
+
+        // Tab Switcher
+        function switchCalculatorTab(tab) {
+            document.querySelectorAll('.calc-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-blue', 'text-white');
+                btn.classList.add('text-slate-600');
+                if (btn.dataset.tab === tab) {
+                    btn.classList.remove('text-slate-600');
+                    btn.classList.add('bg-brand-blue', 'text-white');
+                }
+            });
+
+            document.querySelectorAll('.calc-tab-content').forEach(content => content.classList.add('hidden'));
+            document.getElementById(`calc-${tab}-tab`).classList.remove('hidden');
+        }
+
+        // Calculate Weights for Calculator Form
+        function calculateCalcWeights() {
+            const weight = parseFloat(document.getElementById('calc_weight').value) || 0;
+            const length = parseFloat(document.getElementById('calc_length').value) || 0;
+            const width = parseFloat(document.getElementById('calc_width').value) || 0;
+            const height = parseFloat(document.getElementById('calc_height').value) || 0;
+
+            const vol = (length * width * height) / 5000;
+            const appl = Math.max(weight, vol);
+
+            document.getElementById('calc_vol_display').textContent = vol.toFixed(2) + ' kg';
+            document.getElementById('calc_appl_display').textContent = appl.toFixed(2) + ' kg';
+        }
+
+        // Calculate Regular Rate
+        async function calculateRegularRate(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            const source = formData.get('source_pincode');
+            const dest = formData.get('dest_pincode');
+
+            // Get weight derived from inputs
+            const weight = parseFloat(document.getElementById('calc_weight').value) || 0;
+            const length = parseFloat(document.getElementById('calc_length').value) || 0;
+            const width = parseFloat(document.getElementById('calc_width').value) || 0;
+            const height = parseFloat(document.getElementById('calc_height').value) || 0;
+
+            const vol = (length * width * height) / 5000;
+            const applicableWeight = Math.max(weight, vol);
+
+            const isCod = formData.get('is_cod') === 'true';
+            const orderValue = parseFloat(formData.get('order_value')) || 0;
+
+            try {
+                showLoading('calc-regular-list', 'Fetching best rates...');
+                document.getElementById('calc-regular-results').classList.remove('hidden');
+
+                const response = await fetch(`${API_BASE}/api/compare-rates`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source_pincode: parseInt(source),
+                        dest_pincode: parseInt(dest),
+                        weight: applicableWeight,
+                        is_cod: isCod,
+                        order_value: orderValue,
+                        mode: 'Both'
+                    })
+                });
+
+                if (response.ok) {
+                    const rates = await response.json();
+                    renderRegularRates(rates);
+                } else {
+                    const error = await response.json();
+                    document.getElementById('calc-regular-list').innerHTML = `
+                        <div class="text-center py-6 text-red-600 bg-red-50 rounded-lg">
+                            ${error.detail || 'Failed to fetch rates'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Rate calc error:', error);
+                document.getElementById('calc-regular-list').innerHTML = `
+                        <div class="text-center py-6 text-red-600 bg-red-50 rounded-lg">
+                            Failed to connect to server
+                        </div>
+                    `;
+            }
+        }
+
+        function renderRegularRates(rates) {
+            const container = document.getElementById('calc-regular-list');
+            if (rates.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-slate-500">No carriers available for this route.</div>';
+                return;
+            }
+
+            const html = rates.map(rate => `
+                <div class="bg-white border border-slate-200 rounded-lg p-4 hover:border-brand-blue transition-all flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold">
+                            ${rate.carrier.charAt(0)}
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-800">${rate.carrier}</h4>
+                            <div class="text-xs text-slate-500">${rate.mode} • Zone ${rate.zone}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-lg text-brand-blue">₹${rate.total_cost.toFixed(2)}</div>
+                        <div class="text-xs text-slate-500">Base: ₹${rate.breakdown.base_transport_cost.toFixed(2)}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        // FTL Calculator Logic
+        // Reuse loadFTLRatesData which populates ftlRatesData global
+
+        function updateCalcFTLDestinations() {
+            const sourceCity = document.getElementById('calc-ftl-source').value;
+            const destSelect = document.getElementById('calc-ftl-dest');
+            const containerSelect = document.getElementById('calc-ftl-container');
+
+            destSelect.innerHTML = '<option value="">Select Destination</option>';
+            containerSelect.innerHTML = '<option value="">Select Container</option>';
+
+            if (sourceCity && ftlRatesData[sourceCity]) {
+                const destinations = ftlRatesData[sourceCity];
+                Object.keys(destinations).forEach(dest => {
+                    const option = document.createElement('option');
+                    option.value = dest;
+                    option.textContent = dest;
+                    destSelect.appendChild(option);
+                });
+            }
+            document.getElementById('calc-ftl-results').classList.add('hidden');
+        }
+
+        function updateCalcFTLContainerTypes() {
+            const sourceCity = document.getElementById('calc-ftl-source').value;
+            const destCity = document.getElementById('calc-ftl-dest').value;
+            const containerSelect = document.getElementById('calc-ftl-container');
+
+            containerSelect.innerHTML = '<option value="">Select Container</option>';
+
+            if (sourceCity && destCity && ftlRatesData[sourceCity] && ftlRatesData[sourceCity][destCity]) {
+                const containerTypes = ftlRatesData[sourceCity][destCity];
+                containerTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    containerSelect.appendChild(option);
+                });
+            }
+            document.getElementById('calc-ftl-results').classList.add('hidden');
+        }
+
+        // Populate Source on Load (triggered by showSection)
+        function initFTLCalcDropdowns() {
+            // Reuse existing load function but target new dropdowns
+            // We can just copy options from existing FTL source dropdown if loaded?
+            // Or better, re-render from ftlRatesData
+            const sourceSelect = document.getElementById('calc-ftl-source');
+            if (sourceSelect.options.length <= 1 && Object.keys(ftlRatesData).length > 0) {
+                Object.keys(ftlRatesData).forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    sourceSelect.appendChild(option);
+                });
+            }
+        }
+
+        async function calculateFTLRateSubmit(e) {
+            e.preventDefault();
+            const source = document.getElementById('calc-ftl-source').value;
+            const dest = document.getElementById('calc-ftl-dest').value;
+            const type = document.getElementById('calc-ftl-container').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/ftl/calculate-rate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source_city: source,
+                        destination_city: dest,
+                        container_type: type
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('calc-ftl-results').classList.remove('hidden');
+
+                    // User Request: Base Price = Base + Escalation
+                    document.getElementById('calc-ftl-base').textContent = '₹' + data.price_with_escalation.toFixed(2);
+                    document.getElementById('calc-ftl-gst').textContent = '₹' + data.gst_amount.toFixed(2);
+                    document.getElementById('calc-ftl-total').textContent = '₹' + data.total_price.toFixed(2);
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Calculation failed');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Failed to calculate FTL rate');
+            }
+        }
+
+        // Override showSection to init calculator defaults
+        const originalShowSection = showSection;
+        showSection = function (section) {
+            originalShowSection(section);
+            if (section === 'rate-calculator') {
+                document.getElementById('page-title').textContent = 'Rate Calculator';
+                document.getElementById('header-actions').innerHTML = '';
+
+                // Init FTL dropdowns if data ready
+                if (Object.keys(ftlRatesData).length > 0) {
+                    initFTLCalcDropdowns();
+                } else {
+                    loadFTLRatesData().then(initFTLCalcDropdowns);
+                }
+            }
+        };
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+
             loadDashboard();
             loadFTLRatesData();
         });

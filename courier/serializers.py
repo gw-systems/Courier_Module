@@ -91,14 +91,17 @@ class OrderSerializer(serializers.ModelSerializer):
             'sender_pincode', 'sender_name', 'sender_address', 'sender_phone',
             'weight', 'length', 'width', 'height', 'volumetric_weight',
             'applicable_weight', 'payment_mode', 'order_value', 'item_type',
-            'sku', 'quantity', 'item_amount', 'status', 'selected_carrier',
+            'sku', 'quantity', 'item_amount', 'status',
             'total_cost', 'cost_breakdown', 'awb_number', 'zone_applied',
             'mode', 'created_at', 'updated_at', 'booked_at', 'notes'
         ]
+
         read_only_fields = [
             'id', 'order_number', 'volumetric_weight', 'applicable_weight',
             'created_at', 'updated_at'
         ]
+
+
 
     def validate_recipient_name(self, value):
         if value:
@@ -178,7 +181,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
             'sender_name', 'sender_address', 'sender_phone', 'weight',
             'length', 'width', 'height', 'payment_mode', 'order_value',
             'item_type', 'sku', 'quantity', 'item_amount', 'notes',
-            'status', 'selected_carrier', 'mode', 'zone_applied', 'total_cost'
+            'status', 'mode', 'zone_applied', 'total_cost'
         ]
         extra_kwargs = {field: {'required': False} for field in fields}
 

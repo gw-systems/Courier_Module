@@ -67,13 +67,14 @@ def compare_rates(request):
         try:
             res = calculate_cost(
                 weight=data['weight'],
-                zone_key=zone_key,
+                source_pincode=data['source_pincode'],
+                dest_pincode=data['dest_pincode'],
                 carrier_data=carrier,
                 is_cod=data['is_cod'],
                 order_value=data['order_value']
             )
 
-            res["applied_zone"] = zone_label
+            res["applied_zone"] = res.get("zone", "") # Use zone from engine result
             res["mode"] = carrier.get("mode", "Surface")
             results.append(res)
         except Exception as e:

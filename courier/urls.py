@@ -35,5 +35,6 @@ urlpatterns = [
     path('admin/carriers/<str:carrier_name>', views.delete_carrier, name='admin-delete-carrier'),
     path('admin/carriers/<str:carrier_name>/update', views.update_carrier, name='admin-update-carrier'),
     path('admin/orders', views.admin_orders_list, name='admin-orders-list'),
+    path('admin/ftl-orders', views.admin_ftl_orders_list, name='admin-ftl-orders-list'),
     path('admin/dashboard', views.admin_dashboard_stats, name='admin-dashboard-stats'),
 ]

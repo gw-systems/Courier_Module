@@ -1,0 +1,34 @@
+﻿------------------------------------------------------------
+CARRIER              | WEIGHT   | STATUS     | TOTAL      | BREAKDOWN
+------------------------------------------------------------
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+Shadowfax Surface 0.5kg | 0.5      | OK         | 37.32      | Base:27.5, Fuel:0.0, GST:5.69
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+Shadowfax Surface 0.5kg | 5.0      | OK         | 327.38     | Base:241.25, Fuel:0.0, GST:49.94
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+DTDC Air 0.5kg       | 0.5      | OK         | 43.42      | Base:32.0, Fuel:0.0, GST:6.62
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+DTDC Air 0.5kg       | 5.0      | OK         | 238.83     | Base:176.0, Fuel:0.0, GST:36.43
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+Delhivery Surface 5kg | 4.0      | OK         | 164.2      | Base:121.0, Fuel:0.0, GST:25.05
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+Delhivery Surface 5kg | 6.0      | OK         | 187.27     | Base:138.0, Fuel:0.0, GST:28.57
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+Delhivery Surface 20kg | 15.0     | OK         | 461.38     | Base:340.0, Fuel:0.0, GST:70.38
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+Delhivery Surface 20kg | 25.0     | OK         | 576.73     | Base:425.0, Fuel:0.0, GST:87.97
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+Delhivery Surface 10kg | 14.0     | OK         | 396.24     | Base:292.0, Fuel:0.0, GST:60.44
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+V-Trans 100kg        | 50.0     | OK         | 1757.02    | Base:1100.0, Fuel:110.0, GST:268.02
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+V-Trans 100kg        | 110.0    | OK         | 1933.43    | Base:1210.0, Fuel:121.0, GST:294.93
+Testing ACPL Surface 50kg (Dest: 370201)...
+DEBUG: ID=1, RequiredSrc=None
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+ACPL Surface 50kg    | 25.0     | OK         | 774.38     | Base:285.0, Fuel:28.5, GST:118.12
+Testing ACPL Surface 50kg (Dest: 370201)...
+DEBUG: ID=1, RequiredSrc=None
+ENGINE_DEBUG: req_src='None' type=<class 'NoneType'>
+ACPL Surface 50kg    | 150.0    | OK         | 1665.28    | Base:855.0, Fuel:85.5, GST:254.02
+------------------------------------------------------------

@@ -8,7 +8,7 @@
         "volumetric_divisor": 2880,
         "min_weight": 50.0,
         "min_freight": 750.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": true,
             "base_diesel_price": 90.0,
@@ -212,7 +212,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 0.5,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -264,7 +264,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 0.5,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -316,7 +316,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 0.5,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -368,7 +368,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 0.5,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -420,7 +420,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 0.5,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -472,7 +472,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 10.0,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -525,7 +525,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 20.0,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -577,7 +577,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 2.0,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -629,7 +629,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 5.0,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -681,7 +681,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 0.5,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -733,7 +733,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 0.5,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -785,7 +785,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 0.5,
         "min_freight": 0.0,
-        "min_frieght_value": 0.0,
+        "min_freight_value": 0.0,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -875,7 +875,7 @@
         "volumetric_divisor": 4500,
         "min_weight": 100.0,
         "min_freight": 0.0,
-        "min_frieght_value": 1500,
+        "min_freight_value": 1500,
         "fuel_config": {
             "is_dynamic": false,
             "base_diesel_price": 0.0,
@@ -1180,5 +1180,193 @@
             "zonal_rates": {}
         },
         "zone_mapping": {}
+    },
+    {
+        "carrier_name": "Blue Dart",
+        "required_source_city": "bhiwandi",
+        "routing_logic": {
+            "type": "pincode_region_csv",
+            "csv_file": "BlueDart_Servicable Pincodes.csv"
+        },
+        "min_weight": 10.0,
+        "forward_rates": {
+            "CENTRAL": 7,
+            "EAST": 12.5,
+            "NORTH": 9.5,
+            "NORTH EAST": 18,
+            "SOUTH": 9,
+            "SOUTH1": 9,
+            "SOUTH2": 9,
+            "WEST": 7,
+            "WEST1": 7,
+            "WEST2": 7
+        },
+        "fuel_config": {
+            "is_dynamic": false,
+            "flat_percent": 0.556
+        },
+        "fixed_fees": {
+            "awb_fee": 300,
+            "docket_fee": 0
+        },
+        "variable_fees": {
+            "fod_charge": {
+                "slab_weight": 100,
+                "lte_charge": 100,
+                "gt_charge": 250
+            },
+            "dod_charge": {
+                "percent": 0.005,
+                "min_amount": 200
+            },
+            "owners_risk": {
+                "percent": 0.002,
+                "min_amount": 100
+            },
+            "ecc_charge": [
+                {
+                    "max": 50,
+                    "charge": 75
+                },
+                {
+                    "max": 100,
+                    "charge": 125
+                },
+                {
+                    "max": 999999,
+                    "charge": 175
+                }
+            ]
+        },
+        "edl_config": {
+            "special_regions": {
+                "states": [
+                    "JAMMU AND KASHMIR"
+                ],
+                "regions": [
+                    "NORTH EAST"
+                ],
+                "rate_per_kg": 15,
+                "min_amount": 3000
+            },
+            "overflow_rates": {
+                "dist_limit": 500,
+                "dist_rate_per_km": 14,
+                "weight_limit": 1500,
+                "weight_rate_per_kg": 5
+            }
+        },
+        "edl_matrix": [
+            {
+                "dist_min": 20,
+                "dist_max": 50,
+                "rates": {
+                    "100": 550,
+                    "250": 990,
+                    "500": 1100,
+                    "1000": 1375,
+                    "1500": 1650
+                }
+            },
+            {
+                "dist_min": 51,
+                "dist_max": 100,
+                "rates": {
+                    "100": 825,
+                    "250": 1210,
+                    "500": 1375,
+                    "1000": 1650,
+                    "1500": 1925
+                }
+            },
+            {
+                "dist_min": 101,
+                "dist_max": 150,
+                "rates": {
+                    "100": 1100,
+                    "250": 1650,
+                    "500": 1925,
+                    "1000": 2200,
+                    "1500": 2750
+                }
+            },
+            {
+                "dist_min": 151,
+                "dist_max": 200,
+                "rates": {
+                    "100": 1375,
+                    "250": 1925,
+                    "500": 2200,
+                    "1000": 2475,
+                    "1500": 3300
+                }
+            },
+            {
+                "dist_min": 201,
+                "dist_max": 250,
+                "rates": {
+                    "100": 1650,
+                    "250": 2200,
+                    "500": 2750,
+                    "1000": 3300,
+                    "1500": 3960
+                }
+            },
+            {
+                "dist_min": 250,
+                "dist_max": 300,
+                "rates": {
+                    "100": 1925,
+                    "250": 2500,
+                    "500": 3150,
+                    "1000": 3800,
+                    "1500": 4560
+                }
+            },
+            {
+                "dist_min": 300,
+                "dist_max": 350,
+                "rates": {
+                    "100": 2200,
+                    "250": 2800,
+                    "500": 3550,
+                    "1000": 4300,
+                    "1500": 5160
+                }
+            },
+            {
+                "dist_min": 350,
+                "dist_max": 400,
+                "rates": {
+                    "100": 2475,
+                    "250": 3100,
+                    "500": 3950,
+                    "1000": 4800,
+                    "1500": 5760
+                }
+            },
+            {
+                "dist_min": 400,
+                "dist_max": 450,
+                "rates": {
+                    "100": 2750,
+                    "250": 3400,
+                    "500": 4350,
+                    "1000": 5300,
+                    "1500": 6360
+                }
+            },
+            {
+                "dist_min": 451,
+                "dist_max": 500,
+                "rates": {
+                    "100": 3025,
+                    "250": 3700,
+                    "500": 4750,
+                    "1000": 5800,
+                    "1500": 6960
+                }
+            }
+        ]
     }
 ]

@@ -1,7 +1,16 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Sum, Count
-from .models import Order, OrderStatus, PaymentMode, FTLOrder, Courier, CityRoute, CustomZone, CustomZoneRate
+from .models import Order, OrderStatus, PaymentMode, FTLOrder, Courier, CourierZoneRate, CityRoute, CustomZone, CustomZoneRate, DeliverySlab, SystemConfig
+
+
+class CourierZoneRateInline(admin.TabularInline):
+    model = CourierZoneRate
+    extra = 0
+    fields = ['zone_code', 'rate_type', 'rate']
+    verbose_name = "Standard Zone Rate"
+    verbose_name_plural = "Standard Zone Rates (Zones A-F)"
+    ordering = ['zone_code', 'rate_type']
 
 
 class CityRouteInline(admin.TabularInline):
@@ -28,6 +37,14 @@ class CustomZoneRateInline(admin.TabularInline):
     verbose_name_plural = "Zone Matrix (rates between zone pairs)"
 
 
+class DeliverySlabInline(admin.TabularInline):
+    model = DeliverySlab
+    extra = 1
+    fields = ['min_weight', 'max_weight', 'rate']
+    verbose_name = "Delivery Slab"
+    verbose_name_plural = "Delivery Slabs (City-to-City Weight Brackets)"
+
+
 @admin.register(Courier)
 class CourierAdmin(admin.ModelAdmin):
     list_display = ['name', 'carrier_type', 'carrier_mode', 'rate_logic', 'is_active', 'updated_at']
@@ -37,9 +54,11 @@ class CourierAdmin(admin.ModelAdmin):
     def get_inlines(self, request, obj=None):
         """Show different inlines based on routing logic"""
         if obj and obj.rate_logic == 'City_To_City':
-            return [CityRouteInline]
+            return [CityRouteInline, DeliverySlabInline]
         elif obj and obj.rate_logic == 'Zonal_Custom':
             return [CustomZoneInline, CustomZoneRateInline]
+        elif obj and obj.rate_logic == 'Zonal_Standard':
+            return [CourierZoneRateInline]
         return []
     
     def get_fieldsets(self, request, obj=None):
@@ -58,37 +77,42 @@ class CourierAdmin(admin.ModelAdmin):
                     'volumetric_divisor',
                 )
             }),
-            ('Surcharges & Fees', {
+            ('Fixed Fees', {
                 'fields': (
-                    ('cod_charge_fixed', 'cod_charge_percent'),
-                    'fuel_surcharge_percent'
+                    ('docket_fee', 'eway_bill_fee'),
+                    ('appointment_delivery_fee', 'cod_charge_fixed'),
                 )
+            }),
+            ('Variable Fees', {
+                'fields': (
+                    ('cod_charge_percent', 'fuel_surcharge_percent'),
+                    ('hamali_per_kg', 'min_hamali'),
+                    ('fov_insured_percent', 'fov_uninsured_percent', 'fov_min'),
+                    'damage_claim_percent'
+                )
+            }),
+            ('Dynamic Fuel Surcharge', {
+                'classes': ('collapse',),
+                'fields': (
+                    ('fuel_is_dynamic', 'fuel_base_price', 'fuel_ratio'),
+                ),
+                'description': 'Configure valid only if using Dynamic Fuel Surcharge logic.'
             }),
         ]
         
-        # Add routing-specific fieldsets
+        # Add routing-specific fieldsets descriptions
         if obj and obj.rate_logic == 'Zonal_Standard':
-            basic_fieldsets.extend([
-                ('Forward Rates (Per Zone)', {
-                    'fields': (
-                        ('fwd_z_a', 'fwd_z_b', 'fwd_z_c'),
-                        ('fwd_z_d', 'fwd_z_e', 'fwd_z_f')
-                    ),
-                    'description': '<b>Step 2:</b> Base delivery rates for each standard zone (A-F).'
-                }),
-                ('Additional Rates (Per Zone)', {
-                    'fields': (
-                        ('add_z_a', 'add_z_b', 'add_z_c'),
-                        ('add_z_d', 'add_z_e', 'add_z_f')
-                    ),
-                    'description': 'Rates for every additional weight slab (e.g. per 0.5kg or 1kg).'
-                }),
-            ])
+            basic_fieldsets.append(
+                ('Standard Zonal Rates', {
+                    'fields': (),
+                    'description': '<b>Step 2:</b> Scroll down to manage rates for Standard Zones (A-F) using the inline table.'
+                })
+            )
         elif obj and obj.rate_logic == 'City_To_City':
             basic_fieldsets.append(
                 ('City Routes Configuration', {
                     'fields': (),
-                    'description': '<b>Step 2:</b> Scroll down to add city routes using the form below. Add each destination city and its rate.'
+                    'description': '<b>Step 2:</b> Scroll down to add city routes AND delivery slabs using the forms below.'
                 })
             )
         elif obj and obj.rate_logic == 'Zonal_Custom':
@@ -103,12 +127,11 @@ class CourierAdmin(admin.ModelAdmin):
         basic_fieldsets.append(
             ('Advanced Configuration', {
                 'classes': ('collapse',),
-                'fields': ('rate_card',),
-                'description': '<b>WARNING:</b> This JSON is automatically generated from the fields/tables above. Manual edits may be overwritten.'
+                'fields': ('legacy_rate_card_backup',),
+                'description': '<b>Legacy Backup:</b> This contains the old JSON map. It is no longer synonymous with the active rates.'
             })
         )
         
-
         return basic_fieldsets
 
     def save_related(self, request, form, formsets, change):
@@ -134,11 +157,11 @@ class OrderAdmin(admin.ModelAdmin):
 
     list_display = [
         'order_number', 'recipient_name', 'recipient_contact',
-        'status_badge', 'selected_carrier', 'mode', 'total_cost_display', 'created_at'
+        'status_badge', 'carrier', 'mode', 'total_cost_display', 'created_at'
     ]
 
     list_filter = [
-        'status', 'payment_mode', 'selected_carrier',
+        'status', 'payment_mode', 'carrier',
         'mode', 'created_at', 'booked_at'
     ]
 
@@ -184,7 +207,7 @@ class OrderAdmin(admin.ModelAdmin):
         }),
         ('Shipping Details', {
             'fields': (
-                'selected_carrier', 'mode', 'zone_applied',
+                'carrier', 'mode', 'zone_applied',
                 'total_cost', 'cost_breakdown', 'awb_number'
             )
         }),
@@ -388,3 +411,30 @@ class FTLOrderAdmin(admin.ModelAdmin):
 admin.site.site_header = 'LogiRate Admin'
 admin.site.site_title = 'LogiRate Admin Portal'
 admin.site.index_title = 'Order & Carrier Management'
+
+
+@admin.register(SystemConfig)
+class SystemConfigAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'diesel_price_current', 'gst_rate', 'escalation_rate']
+    fieldsets = (
+        ('Fuel Configuration', {
+            'fields': ('diesel_price_current', 'base_diesel_price', 'fuel_surcharge_ratio')
+        }),
+        ('Financial Configuration', {
+            'fields': ('gst_rate', 'escalation_rate')
+        }),
+        ('Defaults', {
+            'fields': ('default_servicable_csv',)
+        }),
+    )
+
+    def has_add_permission(self, request):
+        # Only allow one instance
+        if self.model.objects.exists():
+            return False
+        return super().has_add_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        # Disallow deleting the config
+        return False
+

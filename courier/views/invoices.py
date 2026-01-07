@@ -57,7 +57,7 @@ def generate_invoice_pdf(request, pk):
         [Paragraph(f"<b>Invoice #:</b> {order.order_number}", normal_style)],
         [f"Date: {order.created_at.strftime('%Y-%m-%d')}"],
         [f"Status: {order.status.upper()}"],
-        [f"Carrier: {order.selected_carrier or 'N/A'}"],
+        [f"Carrier: {order.carrier.name if order.carrier else 'N/A'}"],
         [f"AWB: {order.awb_number or 'N/A'}"]
     ]
     

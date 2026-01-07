@@ -1,0 +1,28 @@
+version: '3.8'
+
+# Development Docker Compose - PostgreSQL only
+# Usage: docker-compose -f docker-compose-dev.yml up -d
+
+services:
+  # PostgreSQL Database for Development
+  db:
+    image: postgres:15-alpine
+    container_name: courier_db_dev
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=courier_db
+      - POSTGRES_USER=courier_user
+      - POSTGRES_PASSWORD=courier_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U courier_user -d courier_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_dev_data:
+    driver: local

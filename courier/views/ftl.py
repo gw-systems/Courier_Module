@@ -21,10 +21,12 @@ def get_ftl_routes(request):
     """Get all available FTL routes (source and destination cities)"""
     ftl_rates = load_ftl_rates()
 
-    # Build a structure with source cities and their destinations
+    # Build a structure with source cities and their destinations + container types
     routes = {}
     for source_city, destinations in ftl_rates.items():
-        routes[source_city] = list(destinations.keys())
+        routes[source_city] = {}
+        for dest_city, rates in destinations.items():
+            routes[source_city][dest_city] = list(rates.keys())
 
     return Response(routes)
 

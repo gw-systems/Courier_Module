@@ -8,12 +8,14 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.utils import timezone
 
-from courier.models import Order, OrderStatus, PaymentMode
+from courier.models import Order, OrderStatus, PaymentMode, Courier
 from courier.serializers import (
     OrderSerializer, OrderUpdateSerializer, CarrierSelectionSerializer
 )
 from courier.engine import calculate_cost
 from .base import load_rates, generate_order_number
+from courier.services import CarrierService, BookingService
+
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -109,66 +111,15 @@ class OrderViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        orders = Order.objects.filter(id__in=order_ids)
-
-        if orders.count() != len(order_ids):
+        try:
+            result = CarrierService.compare_rates(order_ids)
+        except ValueError as e:
             return Response(
-                {"detail": "One or more orders not found"},
-                status=status.HTTP_404_NOT_FOUND
+                {"detail": str(e)},
+                status=status.HTTP_404_NOT_FOUND if "found" in str(e) else status.HTTP_400_BAD_REQUEST
             )
 
-        # Aggregate weights and use first order's pincodes
-        total_weight = sum(order.applicable_weight or order.weight for order in orders)
-        first_order = orders.first()
-        source_pincode = first_order.sender_pincode
-        dest_pincode = first_order.recipient_pincode
-
-        # Check if COD
-        is_cod = any(order.payment_mode == PaymentMode.COD for order in orders)
-        total_order_value = sum(
-            order.order_value for order in orders
-            if order.payment_mode == PaymentMode.COD
-        )
-
-        # Load carriers (zone logic is now handled inside calculate_cost)
-        rates = load_rates()
-        results = []
-
-        for carrier in rates:
-            if not carrier.get("active", True):
-                continue
-
-            try:
-                res = calculate_cost(
-                    weight=total_weight,
-                    source_pincode=source_pincode,
-                    dest_pincode=dest_pincode,
-                    carrier_data=carrier,
-                    is_cod=is_cod,
-                    order_value=total_order_value
-                )
-
-                # Skip if not serviceable
-                if res.get("servicable") == False:
-                    continue
-
-                res["mode"] = carrier.get("mode", "Surface")
-                res["applied_zone"] = res.get("zone", "")  # Map zone to applied_zone for frontend
-                res["order_count"] = len(order_ids)
-                res["total_weight"] = total_weight
-                results.append(res)
-
-            except Exception as e:
-                import logging
-                logging.getLogger('courier').warning(f"Carrier {carrier.get('carrier_name')} failed: {e}")
-                continue
-
-        if not results:
-            return Response(
-                {"detail": "No active carriers found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
+        # Format Response
         return Response({
             "orders": [
                 {
@@ -177,13 +128,14 @@ class OrderViewSet(viewsets.ModelViewSet):
                     "recipient_name": order.recipient_name,
                     "weight": order.applicable_weight or order.weight
                 }
-                for order in orders
+                for order in result["orders"]
             ],
-            "carriers": sorted(results, key=lambda x: x["total_cost"]),
-            "source_pincode": source_pincode,
-            "dest_pincode": dest_pincode,
-            "total_weight": total_weight
+            "carriers": result["carriers"],
+            "source_pincode": result["source_pincode"],
+            "dest_pincode": result["dest_pincode"],
+            "total_weight": result["total_weight"]
         })
+
 
     @action(detail=False, methods=['post'], url_path='book-carrier')
     def book_carrier(self, request):
@@ -192,76 +144,22 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        orders = Order.objects.filter(id__in=data['order_ids'])
-
-        if orders.count() != len(data['order_ids']):
+        courses = Order.objects.none() # Dummy for linter if needed, but not needed here.
+        
+        try:
+            result = BookingService.book_orders(
+                order_ids=data['order_ids'],
+                carrier_name=data['carrier_name'],
+                mode=data['mode']
+            )
+            return Response(result)
+            
+        except ValueError as e:
             return Response(
-                {"detail": "One or more orders not found"},
-                status=status.HTTP_404_NOT_FOUND
+                {"detail": str(e)},
+                status=status.HTTP_404_NOT_FOUND if "found" in str(e) else status.HTTP_400_BAD_REQUEST
             )
 
-        # Calculate rates
-        total_weight = sum(order.applicable_weight or order.weight for order in orders)
-        first_order = orders.first()
-        source_pincode = first_order.sender_pincode
-        dest_pincode = first_order.recipient_pincode
-        is_cod = any(order.payment_mode == PaymentMode.COD for order in orders)
-        total_order_value = sum(
-            order.order_value for order in orders
-            if order.payment_mode == PaymentMode.COD
-        )
-
-        # Find the carrier
-        rates = load_rates()
-        carrier_data = None
-        for carrier in rates:
-            if (carrier.get("carrier_name") == data['carrier_name'] and
-                    carrier.get("mode") == data['mode']):
-                carrier_data = carrier
-                break
-
-        if not carrier_data:
-            return Response(
-                {"detail": "Carrier not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Calculate cost using refactored engine
-        cost_result = calculate_cost(
-            weight=total_weight,
-            source_pincode=source_pincode,
-            dest_pincode=dest_pincode,
-            carrier_data=carrier_data,
-            is_cod=is_cod,
-            order_value=total_order_value
-        )
-
-        # Check if serviceable
-        if cost_result.get("servicable") == False:
-            return Response(
-                {"detail": f"Route not serviceable by {data['carrier_name']}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Update all orders
-        for order in orders:
-            order.selected_carrier = data['carrier_name']
-            order.mode = data['mode']
-            order.zone_applied = cost_result.get("zone", "")
-            order.total_cost = cost_result["total_cost"]
-            order.cost_breakdown = cost_result.get("breakdown", {})
-            order.status = OrderStatus.BOOKED
-            order.booked_at = timezone.now()
-            order.save()
-
-        return Response({
-            "status": "success",
-            "message": f"{orders.count()} order(s) booked with {data['carrier_name']}",
-            "orders_updated": [order.order_number for order in orders],
-            "total_cost": cost_result["total_cost"],
-            "carrier": data['carrier_name'],
-            "mode": data['mode']
-        })
 
     @action(detail=True, methods=['post'], url_path='cancel')
     def cancel_order(self, request, pk=None):

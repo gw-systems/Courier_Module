@@ -188,7 +188,6 @@ def sample_booked_order(db):
         height=10.0,
         payment_mode=PaymentMode.COD,
         status=OrderStatus.BOOKED,
-        selected_carrier="Blue Dart",
         mode="Surface",
         zone_applied="Zone C",
         total_cost=150.00,

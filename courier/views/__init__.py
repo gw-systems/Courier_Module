@@ -23,6 +23,7 @@ from .admin import (
     delete_carrier,
     update_carrier,
     admin_orders_list,
+    admin_ftl_orders_list,
     admin_dashboard_stats,
 )
 
@@ -63,6 +64,7 @@ __all__ = [
     'delete_carrier',
     'update_carrier',
     'admin_orders_list',
+    'admin_ftl_orders_list',
     'admin_dashboard_stats',
     # FTL
     'get_ftl_routes',

@@ -10,7 +10,8 @@ import os
 import shutil
 
 from courier.permissions import IsAdminToken
-from courier.serializers import NewCarrierSerializer
+from courier.serializers import NewCarrierSerializer, OrderSerializer, FTLOrderSerializer
+from courier.models import Order, FTLOrder
 from .base import (
     load_rates, invalidate_rates_cache, logger,
     RATE_CARD_PATH
@@ -264,7 +265,7 @@ def admin_orders_list(request):
     if status_filter:
         queryset = queryset.filter(status=status_filter)
     if carrier_filter:
-        queryset = queryset.filter(selected_carrier=carrier_filter)
+        queryset = queryset.filter(carrier__name=carrier_filter)
 
     # Get orders
     orders = queryset[:limit]
@@ -272,6 +273,32 @@ def admin_orders_list(request):
     return Response({
         "count": queryset.count(),
         "orders": OrderSerializer(orders, many=True).data
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminToken])
+def admin_ftl_orders_list(request):
+    """Get all FTL orders for admin dashboard"""
+    from courier.models import FTLOrder
+    from courier.serializers import FTLOrderSerializer
+
+    # Get query params
+    status_filter = request.query_params.get('status')
+    limit = int(request.query_params.get('limit', 100))
+
+    # Build queryset
+    queryset = FTLOrder.objects.all().order_by('-created_at')
+
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+
+    # Get orders
+    orders = queryset[:limit]
+
+    return Response({
+        "count": queryset.count(),
+        "orders": FTLOrderSerializer(orders, many=True).data
     })
 
 
@@ -300,8 +327,8 @@ def admin_dashboard_stats(request):
 
     # Carrier performance
     carrier_stats = Order.objects.exclude(
-        selected_carrier__isnull=True
-    ).values('selected_carrier').annotate(
+        carrier__isnull=True
+    ).values('carrier__name').annotate(
         order_count=Count('id'),
         revenue=Sum('total_cost')
     ).order_by('-order_count')[:10]
