@@ -92,7 +92,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "static"],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -127,7 +127,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "logistics.db",
+            "NAME": BASE_DIR / "data" / "logistics.db",
         }
     }
     
@@ -259,7 +259,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'app.log',
+            'filename': BASE_DIR / 'logs' / 'app.log',
             'maxBytes': 5 * 1024 * 1024,  # 5MB
             'backupCount': 2,
             'formatter': 'standard',
@@ -386,3 +386,15 @@ if SENTRY_DSN and ENVIRONMENT == 'production':
 
 # Increase field limit for Admin panel (to support large city lists)
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+
+
+# =============================================================================
+# COURIER MODULE BUSINESS RULES
+# =============================================================================
+COURIER_BUSINESS_RULES = {
+    "GST_RATE": 0.18,
+    "ESCALATION_RATE": 0.15,
+    "DIESEL_PRICE": 106.0,
+    "VOLUMETRIC_DIVISOR": 5000,
+    "DEFAULT_WEIGHT_SLAB": 0.5
+}

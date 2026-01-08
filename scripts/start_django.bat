@@ -1,6 +1,7 @@
 @echo off
 REM Quick start script for Django Courier Module (Windows)
 
+pushd %~dp0\..
 echo.
 echo ========================================
 echo   Django Courier Module - Quick Start

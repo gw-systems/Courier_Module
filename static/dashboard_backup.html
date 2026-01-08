@@ -1,0 +1,1100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-blue': '#1e3a8a',
+                    },
+                    animation: {
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'slide-out': 'slideOut 0.3s ease-in forwards',
+                        'spin-slow': 'spin 1s linear infinite',
+                    },
+                    keyframes: {
+                        slideIn: {
+                            '0%': { transform: 'translateX(100%)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        },
+                        slideOut: {
+                            '0%': { transform: 'translateX(0)', opacity: '1' },
+                            '100%': { transform: 'translateX(100%)', opacity: '0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Custom dashboard styles - extracted for maintainability -->
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <!-- Toast Notification System -->
+    <link rel="stylesheet" href="{% static 'css/toast.css' %}">
+</head>
+
+<body class="bg-white font-sans antialiased">
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- Sidebar Navigation -->
+        <aside class="w-20 bg-brand-blue flex flex-col items-center py-6 space-y-8">
+            <div class="text-white font-bold text-2xl mb-4">L</div>
+
+            <!-- Rate Calculator Link (Top Priority) -->
+            <button onclick="showSection('rate-calculator')"
+                class="nav-btn group relative flex items-center justify-center w-12 h-12 rounded-lg bg-green-500 hover:bg-green-600 transition-colors"
+                data-section="rate-calculator">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                    </path>
+                </svg>
+                <span
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">Rate
+                    Calculator</span>
+            </button>
+
+            <!-- Dashboard Icon -->
+            <button onclick="showSection('dashboard')"
+                class="nav-btn group relative flex items-center justify-center w-12 h-12 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                data-section="dashboard">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                    </path>
+                </svg>
+                <span
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">Dashboard</span>
+            </button>
+
+            <!-- Orders Icon -->
+            <button onclick="showSection('orders')"
+                class="nav-btn group relative flex items-center justify-center w-12 h-12 rounded-lg hover:bg-white/20 transition-colors"
+                data-section="orders">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                <span
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">Orders</span>
+            </button>
+
+            <!-- FTL Icon -->
+            <button onclick="showSection('ftl')"
+                class="nav-btn group relative flex items-center justify-center w-12 h-12 rounded-lg hover:bg-white/20 transition-colors"
+                data-section="ftl">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+                <span
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">FTL
+                    Orders</span>
+            </button>
+
+            <!-- Shipments Icon -->
+            <button onclick="showSection('shipments')"
+                class="nav-btn group relative flex items-center justify-center w-12 h-12 rounded-lg hover:bg-white/20 transition-colors"
+                data-section="shipments">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                    </path>
+                </svg>
+                <span
+                    class="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">Shipments</span>
+            </button>
+
+            <!-- Rate Calculator Link (Bottom) -->
+            <div class="flex-grow"></div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <!-- Top Navigation Bar -->
+            <header
+                class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+                <div class="flex items-center flex-1 max-w-2xl">
+                    <h1 class="text-2xl font-bold text-slate-800" id="page-title">Dashboard</h1>
+                </div>
+
+                <div class="flex items-center space-x-4 ml-6" id="header-actions">
+                    <!-- Actions will be dynamically shown based on current section -->
+                </div>
+            </header>
+
+            <!-- Main Content Sections -->
+            <main class="flex-1 overflow-y-auto p-6">
+
+                <!-- Dashboard Section -->
+                <div id="section-dashboard" class="content-section">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <!-- Stats Cards -->
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                            <h3 class="text-sm font-medium text-slate-600 mb-2">Total Orders</h3>
+                            <div class="text-3xl font-bold text-slate-800" id="stat-total-orders">0</div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                            <h3 class="text-sm font-medium text-slate-600 mb-2">Pending Orders</h3>
+                            <div class="text-3xl font-bold text-orange-600" id="stat-pending-orders">0</div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                            <h3 class="text-sm font-medium text-slate-600 mb-2">Booked Orders</h3>
+                            <div class="text-3xl font-bold text-green-600" id="stat-booked-orders">0</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-slate-800 mb-4">Recent Orders</h2>
+                        <div id="recent-orders-list"></div>
+                    </div>
+
+                    <!-- Analytics Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                        <div class="bg-white border border-slate-200 rounded-lg p-6">
+                            <h2 class="text-lg font-semibold text-slate-800 mb-4">Orders by Status</h2>
+                            <div class="relative h-64">
+                                <canvas id="status-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-lg p-6">
+                            <h2 class="text-lg font-semibold text-slate-800 mb-4">Order Activity</h2>
+                            <div class="relative h-64">
+                                <canvas id="orders-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Section -->
+                <div id="section-orders" class="content-section hidden">
+                    <!-- Search and Filters Row -->
+                    <div class="mb-6 space-y-4">
+                        <!-- Search Bar -->
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1 relative">
+                                <input type="text" id="order-search"
+                                    placeholder="Search by order #, name, pincode, or carrier..."
+                                    class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                    oninput="searchOrders(this.value)">
+                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <button onclick="exportOrdersCSV()"
+                                class="px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                Export CSV
+                            </button>
+                        </div>
+
+                        <!-- Filter Buttons and Actions -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex space-x-2 bg-slate-100 rounded-lg p-1 inline-flex">
+                                <button onclick="filterOrders('all')"
+                                    class="order-filter-btn px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-blue shadow-sm"
+                                    data-filter="all">All Orders</button>
+                                <button onclick="filterOrders('draft')"
+                                    class="order-filter-btn px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800"
+                                    data-filter="draft">Draft</button>
+                                <button onclick="filterOrders('booked')"
+                                    class="order-filter-btn px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800"
+                                    data-filter="booked">Booked</button>
+                                <button onclick="filterOrders('cancelled')"
+                                    class="order-filter-btn px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800"
+                                    data-filter="cancelled">Cancelled</button>
+                            </div>
+
+                            <!-- Action Buttons (shown when orders selected) -->
+                            <div id="order-actions" class="hidden flex items-center space-x-2">
+                                <span id="selected-count" class="text-sm text-slate-600 mr-2"></span>
+                                <button onclick="editSelectedOrder()" id="edit-btn"
+                                    class="hidden px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">Edit</button>
+                                <button onclick="cancelSelectedOrders()" id="cancel-btn"
+                                    class="hidden px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors">Cancel
+                                    Booking</button>
+                                <button onclick="downloadSelectedInvoice()" id="invoice-btn"
+                                    class="hidden px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">Invoice</button>
+                                <button onclick="showTrackingTimeline()" id="track-btn"
+                                    class="hidden px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">Track</button>
+                                <button onclick="deleteSelectedOrders()" id="delete-btn"
+                                    class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="orders-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+
+                <!-- FTL Section -->
+                <div id="section-ftl" class="content-section hidden">
+                    <div class="mb-6 flex items-center justify-between">
+                        <div class="flex space-x-2 bg-slate-100 rounded-lg p-1 inline-flex">
+                            <button onclick="filterFTLOrders('all')"
+                                class="ftl-filter-btn px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-blue shadow-sm"
+                                data-filter="all">All Orders</button>
+                            <button onclick="filterFTLOrders('draft')"
+                                class="ftl-filter-btn px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800"
+                                data-filter="draft">Draft</button>
+                            <button onclick="filterFTLOrders('booked')"
+                                class="ftl-filter-btn px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800"
+                                data-filter="booked">Booked</button>
+                            <button onclick="filterFTLOrders('cancelled')"
+                                class="ftl-filter-btn px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800"
+                                data-filter="cancelled">Cancelled</button>
+                        </div>
+
+                        <!-- FTL Action Buttons (shown when FTL orders selected) -->
+                        <div id="ftl-order-actions" class="hidden flex items-center space-x-2">
+                            <span id="ftl-selected-count" class="text-sm text-slate-600 mr-2"></span>
+                            <button onclick="editSelectedFTLOrder()" id="ftl-edit-btn"
+                                class="hidden px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">Edit</button>
+                            <button onclick="cancelSelectedFTLOrders()" id="ftl-cancel-btn"
+                                class="hidden px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors">Cancel
+                                Booking</button>
+                            <button onclick="deleteSelectedFTLOrders()" id="ftl-delete-btn"
+                                class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">Delete</button>
+                        </div>
+                    </div>
+
+                    <div id="ftl-orders-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+
+                <!-- Shipments Section -->
+                <div id="section-shipments" class="content-section hidden">
+                    <!-- Tab switcher for Regular and FTL -->
+                    <div class="mb-6 flex space-x-2 bg-slate-100 rounded-lg p-1 inline-flex">
+                        <button onclick="showShipmentTab('regular')"
+                            class="shipment-tab-btn px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-blue shadow-sm"
+                            data-tab="regular">Regular Orders</button>
+                        <button onclick="showShipmentTab('ftl')"
+                            class="shipment-tab-btn px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800"
+                            data-tab="ftl">FTL Orders</button>
+                    </div>
+
+                    <!-- Regular Orders Shipment Tab -->
+                    <div id="shipment-regular-tab" class="shipment-tab-content">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Left: Orders Selection -->
+                            <div>
+                                <h2 class="text-xl font-semibold text-slate-800 mb-4">Select Orders to Ship</h2>
+                                <div id="shipment-orders-list" class="space-y-3"></div>
+                            </div>
+
+                            <!-- Right: Carrier Comparison -->
+                            <div>
+                                <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                                    <div class="bg-gradient-to-r from-brand-blue to-blue-900 px-4 py-3">
+                                        <h3 class="text-sm font-semibold text-white flex items-center">
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                                </path>
+                                            </svg>
+                                            Carrier Comparison
+                                        </h3>
+                                        <p class="text-xs text-blue-100 mt-1">Select orders first, then compare rates
+                                        </p>
+                                    </div>
+
+                                    <div id="carrier-comparison" class="p-4">
+                                        <div class="text-center py-12 text-slate-500">
+                                            <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                                </path>
+                                            </svg>
+                                            <p>Select orders to compare carrier rates</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FTL Orders Shipment Tab -->
+                    <div id="shipment-ftl-tab" class="shipment-tab-content hidden">
+                        <div class="bg-white border border-slate-200 rounded-lg p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl font-semibold text-slate-800">FTL Orders</h2>
+                                <!-- FTL Shipment Action Buttons -->
+                                <div id="shipment-ftl-actions" class="hidden flex items-center space-x-2">
+                                    <span id="shipment-ftl-selected-count" class="text-sm text-slate-600 mr-2"></span>
+                                    <button onclick="bookSelectedFTLOrders()" id="shipment-ftl-book-btn"
+                                        class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">Book</button>
+                                </div>
+                            </div>
+                            <div id="shipment-ftl-orders-list"
+                                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rate Calculator Section -->
+                <div id="section-rate-calculator" class="content-section hidden">
+                    <div class="max-w-4xl mx-auto">
+                        <!-- Tab Switcher -->
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 mb-6 p-1 inline-flex">
+                            <button onclick="switchCalculatorTab('regular')"
+                                class="calc-tab-btn px-6 py-2.5 text-sm font-medium rounded-md bg-brand-blue text-white shadow-sm transition-colors"
+                                data-tab="regular">
+                                Regular Rate
+                            </button>
+                            <button onclick="switchCalculatorTab('ftl')"
+                                class="calc-tab-btn px-6 py-2.5 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 transition-colors"
+                                data-tab="ftl">
+                                FTL Rate
+                            </button>
+                        </div>
+
+                        <!-- Regular Calculator -->
+                        <div id="calc-regular-tab"
+                            class="calc-tab-content bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-brand-blue" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                                Regular Shipment Calculator
+                            </h2>
+
+                            <form id="regular-calc-form" onsubmit="calculateRegularRate(event)" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Origin & Dest -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Source
+                                            Pincode</label>
+                                        <input type="text" name="source_pincode" required maxlength="6"
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-shadow"
+                                            placeholder="e.g. 400001"
+                                            oninput="this.value = this.value.replace(/\D/g, '')">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Destination
+                                            Pincode</label>
+                                        <input type="text" name="dest_pincode" required maxlength="6"
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-shadow"
+                                            placeholder="e.g. 110001"
+                                            oninput="this.value = this.value.replace(/\D/g, '')">
+                                    </div>
+
+                                    <!-- Dimensions & Weight -->
+                                    <div class="md:col-span-2">
+                                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                            <h3 class="text-sm font-semibold text-slate-700 mb-3">Dimensions &
+                                                Weight</h3>
+                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-500 mb-1">Weight
+                                                        (kg)</label>
+                                                    <input type="number" name="weight" id="calc_weight" required
+                                                        step="0.01" min="0.01"
+                                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-1 focus:ring-brand-blue"
+                                                        onchange="calculateCalcWeights()">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-500 mb-1">Length
+                                                        (cm)</label>
+                                                    <input type="number" name="length" id="calc_length" required
+                                                        step="0.1" min="0.1" value="10"
+                                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-1 focus:ring-brand-blue"
+                                                        onchange="calculateCalcWeights()">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-500 mb-1">Width
+                                                        (cm)</label>
+                                                    <input type="number" name="width" id="calc_width" required
+                                                        step="0.1" min="0.1" value="10"
+                                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-1 focus:ring-brand-blue"
+                                                        onchange="calculateCalcWeights()">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-500 mb-1">Height
+                                                        (cm)</label>
+                                                    <input type="number" name="height" id="calc_height" required
+                                                        step="0.1" min="0.1" value="10"
+                                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-1 focus:ring-brand-blue"
+                                                        onchange="calculateCalcWeights()">
+                                                </div>
+                                            </div>
+                                            <div class="mt-3 flex justify-between text-xs text-slate-500">
+                                                <span>Volumetric: <strong id="calc_vol_display">0.2
+                                                        kg</strong></span>
+                                                <span>Applicable: <strong id="calc_appl_display"
+                                                        class="text-green-600">0.2 kg</strong></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment Details -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Payment
+                                            Mode</label>
+                                        <select name="is_cod"
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent bg-white">
+                                            <option value="false">Prepaid</option>
+                                            <option value="true">COD (Cash on Delivery)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Order Value
+                                            <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                        <input type="number" name="order_value" value="0" min="0" step="0.01"
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-shadow">
+                                    </div>
+                                </div>
+
+                                <div class="pt-4">
+                                    <button type="submit"
+                                        class="w-full md:w-auto px-8 py-3 bg-brand-blue text-white font-semibold rounded-lg hover:bg-blue-900 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
+                                        Calculate Rates
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Results -->
+                            <div id="calc-regular-results"
+                                class="hidden mt-8 border-t border-slate-200 pt-8 animate-slide-in">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4">Available Services</h3>
+                                <div id="calc-regular-list" class="space-y-3">
+                                    <!-- Results injected here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FTL Calculator -->
+                        <div id="calc-ftl-tab"
+                            class="calc-tab-content bg-white rounded-lg shadow-sm border border-slate-200 p-6 hidden">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-brand-blue" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                </svg>
+                                FTL Rate Calculator
+                            </h2>
+
+                            <form id="ftl-calc-form" onsubmit="calculateFTLRateSubmit(event)" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Source
+                                            City</label>
+                                        <select name="source_city" id="calc-ftl-source" required
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue"
+                                            onchange="updateCalcFTLDestinations()">
+                                            <option value="">Select Source</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Destination
+                                            City</label>
+                                        <select name="destination_city" id="calc-ftl-dest" required
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue"
+                                            onchange="updateCalcFTLContainerTypes()">
+                                            <option value="">Select Destination</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Container
+                                            Type</label>
+                                        <select name="container_type" id="calc-ftl-container" required
+                                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue">
+                                            <option value="">Select Container</option>
+                                            <!-- Options will be loaded dynamically based on source-destination selection -->
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4">
+                                    <button type="submit"
+                                        class="w-full md:w-auto px-8 py-3 bg-brand-blue text-white font-semibold rounded-lg hover:bg-blue-900 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
+                                        Calculate FTL Rate
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Results -->
+                            <div id="calc-ftl-results"
+                                class="hidden mt-8 border-t border-slate-200 pt-8 animate-slide-in">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4">Estimated Cost</h3>
+                                <div class="bg-blue-50 rounded-lg p-6 max-w-md border border-blue-100">
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center text-slate-600">
+                                            <span>Base Price</span>
+                                            <span class="font-semibold text-slate-800" id="calc-ftl-base">₹0.00</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-slate-600">
+                                            <span>GST (18%)</span>
+                                            <span class="font-semibold text-slate-800" id="calc-ftl-gst">₹0.00</span>
+                                        </div>
+                                        <div class="pt-3 border-t border-blue-200 flex justify-between items-center">
+                                            <span class="font-bold text-slate-800 text-lg">Total Cost</span>
+                                            <span class="font-bold text-brand-blue text-xl"
+                                                id="calc-ftl-total">₹0.00</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                                        * This is an estimate used for creating orders. Actual charges may vary
+                                        based on market conditions.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Create Order Modal -->
+    <div id="createOrderModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+                <h2 id="modal-title" class="text-xl font-bold text-slate-800">Create New Order</h2>
+                <button onclick="hideCreateOrderModal()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="createOrderForm" class="p-6 space-y-6">
+                <!-- Recipient Details -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Recipient Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Name *</label>
+                            <input type="text" name="recipient_name" required
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onblur="validateName(this)"
+                                oninput="clearError(this); this.value = this.value.replace(/[^a-zA-Z\s.-]/g, '')">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Contact Number *</label>
+                            <input type="tel" name="recipient_contact" required
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onblur="validateContact(this)"
+                                oninput="clearError(this); this.value = this.value.replace(/\D/g, '')" maxlength="10">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Address *</label>
+                            <textarea name="recipient_address" required rows="2"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onblur="validateAddress(this)" oninput="clearError(this)"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Pincode *</label>
+                            <input type="text" id="recipient_pincode" name="recipient_pincode" required maxlength="6"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onchange="lookupPincode('recipient')" onblur="validatePincode(this)"
+                                oninput="clearError(this); this.value = this.value.replace(/\D/g, '')">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">City</label>
+                            <input type="text" id="recipient_city" name="recipient_city" readonly
+                                class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">State</label>
+                            <input type="text" id="recipient_state" name="recipient_state" readonly
+                                class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                            <input type="email" name="recipient_email"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onblur="validateEmail(this)" oninput="clearError(this)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sender Details -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Sender Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Sender Pincode *</label>
+                            <input type="text" name="sender_pincode" required maxlength="6"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onblur="validatePincode(this)"
+                                oninput="clearError(this); this.value = this.value.replace(/\D/g, '')">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Sender Name</label>
+                            <input type="text" name="sender_name"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onblur="validateName(this)"
+                                oninput="clearError(this); this.value = this.value.replace(/[^a-zA-Z\s.-]/g, '')">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Sender Address</label>
+                            <textarea name="sender_address" rows="2"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onblur="validateAddress(this)" oninput="clearError(this)"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Sender Phone</label>
+                            <input type="tel" name="sender_phone"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onblur="validatePhone(this)"
+                                oninput="clearError(this); this.value = this.value.replace(/\D/g, '')" maxlength="10">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Box Details -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Box Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Actual Weight (kg) *</label>
+                            <input type="number" id="weight" name="weight" required step="0.01" min="0.01"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onchange="calculateWeights()" onblur="validateNumeric(this, 'Weight')"
+                                oninput="clearError(this)">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Length (cm) *</label>
+                            <input type="number" id="length" name="length" required step="0.1" min="0.1"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onchange="calculateWeights()" onblur="validateNumeric(this, 'Length')"
+                                oninput="clearError(this)">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Width (cm) *</label>
+                            <input type="number" id="width" name="width" required step="0.1" min="0.1"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onchange="calculateWeights()" onblur="validateNumeric(this, 'Width')"
+                                oninput="clearError(this)">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Height (cm) *</label>
+                            <input type="number" id="height" name="height" required step="0.1" min="0.1"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onchange="calculateWeights()" onblur="validateNumeric(this, 'Height')"
+                                oninput="clearError(this)">
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                        <div class="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <span class="text-slate-600">Volumetric Weight:</span>
+                                <span class="ml-1 font-bold text-brand-blue" id="volumetric_weight_display">0.00
+                                    kg</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-600">Applicable Weight:</span>
+                                <span class="ml-1 font-bold text-green-600" id="applicable_weight_display">0.00
+                                    kg</span>
+                            </div>
+                            <div class="text-xs text-slate-500 italic">
+                                Volumetric = (L × W × H) ÷ 5000<br>
+                                Applicable = max(Actual, Volumetric)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment & Items -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Payment & Items</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Payment Mode *</label>
+                            <select name="payment_mode"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent">
+                                <option value="prepaid">Prepaid</option>
+                                <option value="cod">Cash on Delivery (COD)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Order Value (₹)</label>
+                            <input type="number" name="order_value" step="0.01" min="0" value="0"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Item Type</label>
+                            <input type="text" name="item_type" placeholder="e.g., Electronics, Clothing"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">SKU</label>
+                            <input type="text" name="sku"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
+                            <input type="number" name="quantity" min="1" value="1"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Item Amount (₹)</label>
+                            <input type="number" name="item_amount" step="0.01" min="0" value="0"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+                    <textarea name="notes" rows="2"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+                    <button type="button" onclick="hideCreateOrderModal()"
+                        class="px-6 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submit-order-btn"
+                        class="px-6 py-2 bg-brand-blue text-white rounded-lg hover:bg-blue-900">
+                        Create Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tracking Timeline Modal -->
+    <div id="trackingModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div
+                class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between z-10">
+                <h2 class="text-xl font-bold text-slate-800">Order Tracking</h2>
+                <button onclick="hideTrackingModal()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-6">
+                <div class="mb-6 bg-slate-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-500">Order #</span>
+                        <span class="font-bold text-slate-800" id="track-order-number">...</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-500">Current Status</span>
+                        <span class="text-sm font-medium px-2 py-1 rounded-full bg-slate-200"
+                            id="track-order-status">...</span>
+                    </div>
+                </div>
+
+                <!-- Timeline Container -->
+                <div class="relative pl-8 border-l-2 border-slate-200 space-y-8" id="tracking-timeline">
+                    <!-- Timeline items will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Timeline Styles */
+        .timeline-item {
+            position: relative;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -41px;
+            /* Adjust based on padding/border */
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            background: white;
+            z-index: 10;
+        }
+
+        .timeline-dot.active {
+            background: #10b981;
+            /* Green */
+            border-color: #10b981;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timeline-dot.current {
+            background: #3b82f6;
+            /* Blue */
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
+        .timeline-dot.error {
+            background: #ef4444;
+            /* Red */
+            border-color: #ef4444;
+        }
+
+        .timeline-content h4 {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .timeline-content p {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+    </style>
+
+    <!-- Create FTL Order Modal -->
+    <div id="createFTLModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+                <h2 id="ftl-modal-title" class="text-xl font-bold text-slate-800">Create FTL Order</h2>
+                <button onclick="hideCreateFTLModal()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="createFTLForm" class="p-6 space-y-6">
+                <!-- Contact Details -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Contact Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Name *</label>
+                            <input type="text" name="name" required
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Phone *</label>
+                            <input type="tel" name="phone" required maxlength="10"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                oninput="this.value = this.value.replace(/\D/g, '')">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                            <input type="email" name="email"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Details -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Location Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Source City *</label>
+                            <select name="source_city" id="ftl-source-city" required
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onchange="updateFTLDestinations()">
+                                <option value="">Select Source City</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Source Pincode *</label>
+                            <input type="text" name="source_pincode" required maxlength="6"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                oninput="this.value = this.value.replace(/\D/g, '')">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Source Address</label>
+                            <textarea name="source_address" rows="2"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                placeholder="Enter complete pickup address (optional)"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Destination City *</label>
+                            <select name="destination_city" id="ftl-destination-city" required
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                onchange="updateFTLContainerTypes()">
+                                <option value="">Select Destination City</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Destination Pincode *</label>
+                            <input type="text" name="destination_pincode" required maxlength="6"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                oninput="this.value = this.value.replace(/\D/g, '')">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Destination Address</label>
+                            <textarea name="destination_address" rows="2"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                                placeholder="Enter complete delivery address (optional)"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Container Type -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Container Details</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Container Type *</label>
+                        <select name="container_type" id="ftl-container-type" required
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                            onchange="calculateFTLRate()">
+                            <option value="">Select Container Type</option>
+                            <!-- Options will be loaded dynamically based on source-destination selection -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pricing Breakdown (Display Only) -->
+                <div id="ftl-pricing-breakdown" class="hidden border-t pt-4">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Pricing Breakdown</h3>
+                    <div class="bg-blue-50 rounded-lg p-4 space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">Base Price:</span>
+                            <span class="font-medium" id="ftl-base-price">₹0.00</span>
+                        </div>
+                        <!-- Escalation hidden from UI but still calculated in backend -->
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">GST (18%):</span>
+                            <span class="font-medium" id="ftl-gst">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold border-t border-blue-300 pt-2">
+                            <span class="text-slate-800">Total Price:</span>
+                            <span class="text-brand-blue" id="ftl-total-price">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+                    <textarea name="notes" rows="2"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+                    <button type="button" onclick="hideCreateFTLModal()"
+                        class="px-6 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submit-ftl-btn"
+                        class="px-6 py-2 bg-brand-blue text-white rounded-lg hover:bg-blue-900">
+                        Create FTL Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+    </script>
+    <!-- Toast Notification System - Must load first -->
+    <script src="{% static 'js/toast.js' %}"></script>
+    <!-- Dashboard JavaScript Files -->
+    <script src="{% static 'js/dashboard/utils.js' %}"></script>
+    <script src="{% static 'js/dashboard/ftl.js' %}"></script>
+    <script src="{% static 'js/dashboard/orders.js' %}"></script>
+    <script src="{% static 'js/dashboard/shipments.js' %}"></script>
+    <script src="{% static 'js/dashboard/calculator.js' %}"></script>
+    <script>
+
+        // Utils loaded from static/js/dashboard/utils.js
+
+        // Section Navigation
+        function showSection(section) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`section-${section}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white/10');
+                if (btn.dataset.section === section) {
+                    btn.classList.add('bg-white/10');
+                }
+            });
+
+            const titles = {
+                dashboard: 'Dashboard',
+                orders: 'Order Management',
+                shipments: 'Shipment Management',
+                ftl: 'FTL Orders'
+            };
+            document.getElementById('page-title').textContent = titles[section] || 'Dashboard';
+
+            // Update header actions based on section
+            const headerActions = document.getElementById('header-actions');
+            if (section === 'orders') {
+                headerActions.innerHTML = `
+                    <button onclick="showCreateOrderModal()" class="bg-brand-blue text-white px-5 py-2 rounded-lg hover:bg-blue-900 transition-colors font-medium flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span>Create New Order</span>
+                    </button>
+                `;
+            } else if (section === 'ftl') {
+                headerActions.innerHTML = `
+                    <button onclick="showCreateFTLModal()" class="bg-brand-blue text-white px-5 py-2 rounded-lg hover:bg-blue-900 transition-colors font-medium flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span>Create FTL Order</span>
+                    </button>
+                `;
+            } else {
+                headerActions.innerHTML = '';
+            }
+
+            if (section === 'dashboard') loadDashboard();
+            if (section === 'orders') loadAllOrders();
+            if (section === 'shipments') {
+                showShipmentTab('regular'); // Initialize with regular tab
+            }
+            if (section === 'ftl') loadFTLOrders();
+        }
+
+        // Modal Functions
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initFTLListeners();
+            initOrderListeners();
+            initCalculator();
+            // Default to rate-calculator for static view
+            showSection('rate-calculator');
+            loadFTLRatesData();
+        });
+    </script>
+</body>
+
+</html>

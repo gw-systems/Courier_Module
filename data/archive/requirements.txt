@@ -1,0 +1,74 @@
+# ================================
+# Django Core
+# ================================
+Django==5.2.8
+django-environ==0.12.0
+
+# ================================
+# Django REST Framework
+# ================================
+djangorestframework==3.16.1
+django-cors-headers==4.9.0
+drf-spectacular==0.29.0
+
+# ================================
+# Database
+# ================================
+psycopg2-binary==2.9.11  # PostgreSQL adapter
+
+# ================================
+# Security
+# ================================
+argon2-cffi==25.1.0  # Argon2 password hashing
+
+# ================================
+# Data Processing
+# ================================
+pandas==2.3.3
+numpy==2.4.0
+
+# ================================
+# Environment & Configuration
+# ================================
+python-dotenv==1.2.1
+
+# ================================
+# Production Server
+# ================================
+gunicorn==23.0.0
+whitenoise==6.11.0  # Static file serving
+
+# ================================
+# Caching
+# ================================
+django-redis==5.4.0
+redis==5.2.1
+
+# ================================
+# Monitoring & Error Tracking
+# ================================
+sentry-sdk[django]==1.39.0
+
+# ================================
+# Testing
+# ================================
+pytest==7.4.3
+pytest-django==4.11.1
+pytest-cov==4.1.0
+pytest-xdist==3.5.0  # Parallel test execution
+
+# ================================
+# Code Quality
+# ================================
+black==25.1.0
+isort==5.13.0
+flake8==7.3.0
+ruff==0.1.14
+mypy==1.8.0
+django-stubs==4.2.7
+djangorestframework-stubs==3.14.5
+
+# ================================
+# Pre-commit Hooks
+# ================================
+pre-commit==3.6.0

@@ -1,6 +1,53 @@
 from django.db import models
 from django.utils import timezone
+from django.utils import timezone
 from decimal import Decimal
+from .models_refactored import FeeStructure, ServiceConstraints, FuelConfiguration, RoutingLogic
+
+
+class CourierManager(models.Manager):
+    def create(self, **kwargs):
+        # Separate legacy fields from main fields
+        fees_fields = {
+            'docket_fee': 'docket_fee', 
+            'eway_bill_fee': 'eway_bill_fee', 
+            'appointment_delivery_fee': 'appointment_delivery_fee', 
+            'cod_charge_fixed': 'cod_fixed', 
+            'cod_charge_percent': 'cod_percent', 
+            'hamali_per_kg': 'hamali_per_kg', 
+            'min_hamali': 'min_hamali', 
+            'fov_min': 'fov_min', 
+            'fov_insured_percent': 'fov_insured_percent', 
+            'fov_uninsured_percent': 'fov_uninsured_percent', 
+            'damage_claim_percent': 'damage_claim_percent'
+        }
+        constraints_fields = ['min_weight', 'max_weight', 'volumetric_divisor', 'required_source_city']
+        fuel_fields = {'fuel_is_dynamic': 'is_dynamic', 'fuel_base_price': 'base_price', 'fuel_ratio': 'ratio', 'fuel_surcharge_percent': 'surcharge_percent'}
+        routing_fields = {'rate_logic': 'logic_type', 'serviceable_pincode_csv': 'serviceable_pincode_csv', 'hub_city': 'hub_city', 'hub_pincode_prefixes': 'hub_pincode_prefixes'}
+        
+        fees_data = {model_k: kwargs.pop(legacy_k) for legacy_k, model_k in fees_fields.items() if legacy_k in kwargs}
+        constraints_data = {k: kwargs.pop(k) for k in constraints_fields if k in kwargs}
+        fuel_data = {model_k: kwargs.pop(legacy_k) for legacy_k, model_k in fuel_fields.items() if legacy_k in kwargs}
+        routing_data = {model_k: kwargs.pop(legacy_k) for legacy_k, model_k in routing_fields.items() if legacy_k in kwargs}
+        
+        # Create Courier
+        obj = super().create(**kwargs)
+        
+        # Create related components
+        if fees_data or True: # always create to ensure structure exists? No, only if data. Or strict defaults.
+            # Using defaults from model definition if not provided
+            FeeStructure.objects.create(courier_link=obj, **fees_data)
+        
+        if constraints_data or True:
+            ServiceConstraints.objects.create(courier_link=obj, **constraints_data)
+            
+        if fuel_data or True:
+            FuelConfiguration.objects.create(courier_link=obj, **fuel_data)
+            
+        if routing_data or True:
+            RoutingLogic.objects.create(courier_link=obj, **routing_data)
+            
+        return obj
 
 
 class Courier(models.Model):
@@ -8,56 +55,183 @@ class Courier(models.Model):
     Courier model to store rate cards and configuration.
     Replaces master_card.json.
     """
+    objects = CourierManager()
+    
     name = models.CharField(max_length=100, unique=True, verbose_name="Carrier Name")
     is_active = models.BooleanField(default=True, verbose_name="Active")
-    
+
     # Friendly Configuration Fields
     carrier_type = models.CharField(max_length=20, default="Courier", choices=[("Courier","Courier"),("PTL","PTL")])
     carrier_mode = models.CharField(max_length=20, default="Surface", choices=[("Surface","Surface"),("Air","Air")])
-    rate_logic = models.CharField(
-        max_length=20, 
-        default="Zonal_Standard", 
-        choices=[
-            ("Zonal_Standard","Zonal (Standard A-F Zones)"),
-            ("Zonal_Custom","Zonal (Custom Zone Matrix)"),
-            ("City_To_City","City to City Routes"),
-            ("Region_CSV","Regional (CSV Based)")
-        ],
-        help_text="Select the routing logic type"
-    )
     
-    min_weight = models.FloatField(default=0.5, help_text="Min weight in kg")
-    max_weight = models.FloatField(default=99999.0, help_text="Max weight in kg")
-    volumetric_divisor = models.IntegerField(default=5000, help_text="e.g. 5000 or 4500")
-    
-    # Advanced / Source Config
-    required_source_city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Required Source City", help_text="Restrict service to this city only")
-    serviceable_pincode_csv = models.CharField(max_length=255, blank=True, null=True, verbose_name="Serviceable CSV", help_text="Filename for CSV-based logic (e.g. BlueDart_...csv)")
-    hub_city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Hub City", help_text="Hub city for City-to-City logic")
-    
-    cod_charge_fixed = models.FloatField(default=0.0, verbose_name="COD Fixed Fee")
-    cod_charge_percent = models.FloatField(default=0.0, verbose_name="COD % (ratio, e.g. 0.015)")
+    # --- LEGACY PROPERTIES (FACADE) ---
 
-    # Fuel Surcharge Configuration
-    fuel_surcharge_percent = models.FloatField(default=0.0, verbose_name="Fuel Surcharge % (ratio)")
-    fuel_is_dynamic = models.BooleanField(default=False, verbose_name="Dynamic Fuel Surcharge")
-    fuel_base_price = models.FloatField(default=0.0, verbose_name="Base Diesel Price")
-    fuel_ratio = models.FloatField(default=0.0, verbose_name="Diesel Ratio")
+    def _get_fees(self):
+        if not hasattr(self, 'fees_config'):
+             # If accessed before save/create, this fails. 
+             # But for existing objects it should work.
+             return None
+        return self.fees_config
+
+    # docket_fee
+    @property
+    def docket_fee(self):
+        return self.fees_config.docket_fee if self._get_fees() else Decimal('0.00')
+    @docket_fee.setter
+    def docket_fee(self, value):
+        if self._get_fees(): self.fees_config.docket_fee = value; self.fees_config.save()
+
+    # eway_bill_fee
+    @property
+    def eway_bill_fee(self):
+        return self.fees_config.eway_bill_fee if self._get_fees() else Decimal('0.00')
+    @eway_bill_fee.setter
+    def eway_bill_fee(self, value):
+        if self._get_fees(): self.fees_config.eway_bill_fee = value; self.fees_config.save()
     
-    # Fixed Fees
-    docket_fee = models.FloatField(default=0.0, verbose_name="Docket Fee")
-    eway_bill_fee = models.FloatField(default=0.0, verbose_name="E-Way Bill Fee")
-    appointment_delivery_fee = models.FloatField(default=0.0, verbose_name="Appointment Delivery Fee")
+    # ... (Implementing key properties for completeness)
+    
+    # min_weight
+    @property
+    def min_weight(self):
+        return self.constraints_config.min_weight if hasattr(self, 'constraints_config') else 0.5
+    @min_weight.setter
+    def min_weight(self, value):
+        if hasattr(self, 'constraints_config'): self.constraints_config.min_weight = value; self.constraints_config.save()
 
-    # Variable Fees
-    hamali_per_kg = models.FloatField(default=0.0, verbose_name="Hamali (per kg)")
-    min_hamali = models.FloatField(default=0.0, verbose_name="Min Hamali")
-    fov_min = models.FloatField(default=0.0, verbose_name="Min FOV")
-    fov_insured_percent = models.FloatField(default=0.0, verbose_name="FOV Insured %")
-    fov_uninsured_percent = models.FloatField(default=0.0, verbose_name="FOV Uninsured %")
-    damage_claim_percent = models.FloatField(default=0.0, verbose_name="Damage Claim %")
+    # max_weight
+    @property
+    def max_weight(self):
+        return self.constraints_config.max_weight if hasattr(self, 'constraints_config') else 99999.0
+    @max_weight.setter
+    def max_weight(self, value):
+        if hasattr(self, 'constraints_config'): self.constraints_config.max_weight = value; self.constraints_config.save()
 
-    fuel_surcharge_percent = models.FloatField(default=0.0, verbose_name="Fuel Surcharge % (ratio)")
+    # rate_logic (Mapped to logic_type)
+    @property
+    def rate_logic(self):
+        return self.routing_config.logic_type if hasattr(self, 'routing_config') else "Zonal_Standard"
+    @rate_logic.setter
+    def rate_logic(self, value):
+        if hasattr(self, 'routing_config'): self.routing_config.logic_type = value; self.routing_config.save()
+
+    # --- Fuel Properties ---
+    @property
+    def fuel_is_dynamic(self):
+        return self.fuel_config_obj.is_dynamic if hasattr(self, 'fuel_config_obj') else False
+    @fuel_is_dynamic.setter
+    def fuel_is_dynamic(self, value):
+        if hasattr(self, 'fuel_config_obj'): self.fuel_config_obj.is_dynamic = value; self.fuel_config_obj.save()
+
+    @property
+    def fuel_base_price(self):
+        return self.fuel_config_obj.base_price if hasattr(self, 'fuel_config_obj') else Decimal('0.00')
+    @fuel_base_price.setter
+    def fuel_base_price(self, value):
+        if hasattr(self, 'fuel_config_obj'): self.fuel_config_obj.base_price = value; self.fuel_config_obj.save()
+
+    @property
+    def fuel_ratio(self):
+        return self.fuel_config_obj.ratio if hasattr(self, 'fuel_config_obj') else Decimal('0.0000')
+    @fuel_ratio.setter
+    def fuel_ratio(self, value):
+        if hasattr(self, 'fuel_config_obj'): self.fuel_config_obj.ratio = value; self.fuel_config_obj.save()
+
+    @property
+    def fuel_surcharge_percent(self):
+        return self.fuel_config_obj.surcharge_percent if hasattr(self, 'fuel_config_obj') else Decimal('0.0000')
+    @fuel_surcharge_percent.setter
+    def fuel_surcharge_percent(self, value):
+        if hasattr(self, 'fuel_config_obj'): self.fuel_config_obj.surcharge_percent = value; self.fuel_config_obj.save()
+
+    # --- Other Fees Properties (Partial List for brevity, assuming standard usage covers them) ---
+    @property
+    def cod_charge_fixed(self): return self.fees_config.cod_fixed if self._get_fees() else Decimal('0.00')
+    @cod_charge_fixed.setter
+    def cod_charge_fixed(self, v): 
+        if self._get_fees(): self.fees_config.cod_fixed = v; self.fees_config.save()
+
+    @property
+    def cod_charge_percent(self): return self.fees_config.cod_percent if self._get_fees() else Decimal('0.0000')
+    @cod_charge_percent.setter
+    def cod_charge_percent(self, v): 
+        if self._get_fees(): self.fees_config.cod_percent = v; self.fees_config.save()
+    
+    @property
+    def hamali_per_kg(self): return self.fees_config.hamali_per_kg if self._get_fees() else Decimal('0.00')
+    @hamali_per_kg.setter
+    def hamali_per_kg(self, v): 
+        if self._get_fees(): self.fees_config.hamali_per_kg = v; self.fees_config.save()
+
+    @property
+    def min_hamali(self): return self.fees_config.min_hamali if self._get_fees() else Decimal('0.00')
+    @min_hamali.setter
+    def min_hamali(self, v): 
+        if self._get_fees(): self.fees_config.min_hamali = v; self.fees_config.save()
+        
+    @property
+    def appointment_delivery_fee(self): return self.fees_config.appointment_delivery_fee if self._get_fees() else Decimal('0.00')
+    @appointment_delivery_fee.setter
+    def appointment_delivery_fee(self, v): 
+        if self._get_fees(): self.fees_config.appointment_delivery_fee = v; self.fees_config.save()
+
+    @property
+    def fov_min(self): return self.fees_config.fov_min if self._get_fees() else Decimal('0.00')
+    @fov_min.setter
+    def fov_min(self, v): 
+        if self._get_fees(): self.fees_config.fov_min = v; self.fees_config.save()
+
+    @property
+    def fov_insured_percent(self): return self.fees_config.fov_insured_percent if self._get_fees() else Decimal('0.0000')
+    @fov_insured_percent.setter
+    def fov_insured_percent(self, v): 
+        if self._get_fees(): self.fees_config.fov_insured_percent = v; self.fees_config.save()
+
+    @property
+    def fov_uninsured_percent(self): return self.fees_config.fov_uninsured_percent if self._get_fees() else Decimal('0.0000')
+    @fov_uninsured_percent.setter
+    def fov_uninsured_percent(self, v): 
+        if self._get_fees(): self.fees_config.fov_uninsured_percent = v; self.fees_config.save()
+
+    @property
+    def damage_claim_percent(self): return self.fees_config.damage_claim_percent if self._get_fees() else Decimal('0.0000')
+    @damage_claim_percent.setter
+    def damage_claim_percent(self, v): 
+        if self._get_fees(): self.fees_config.damage_claim_percent = v; self.fees_config.save()
+
+    # --- Routing Config Properties ---
+    @property
+    def serviceable_pincode_csv(self): return self.routing_config.serviceable_pincode_csv if hasattr(self, 'routing_config') else None
+    @serviceable_pincode_csv.setter
+    def serviceable_pincode_csv(self, v): 
+        if hasattr(self, 'routing_config'): self.routing_config.serviceable_pincode_csv = v; self.routing_config.save()
+
+    @property
+    def hub_city(self): return self.routing_config.hub_city if hasattr(self, 'routing_config') else None
+    @hub_city.setter
+    def hub_city(self, v): 
+        if hasattr(self, 'routing_config'): self.routing_config.hub_city = v; self.routing_config.save()
+
+    @property
+    def hub_pincode_prefixes(self): return self.routing_config.hub_pincode_prefixes if hasattr(self, 'routing_config') else None
+    @hub_pincode_prefixes.setter
+    def hub_pincode_prefixes(self, v): 
+        if hasattr(self, 'routing_config'): self.routing_config.hub_pincode_prefixes = v; self.routing_config.save()
+        
+    @property
+    def required_source_city(self): return self.constraints_config.required_source_city if hasattr(self, 'constraints_config') else None
+    @required_source_city.setter
+    def required_source_city(self, v):
+        if hasattr(self, 'constraints_config'): self.constraints_config.required_source_city = v; self.constraints_config.save()
+
+    @property
+    def volumetric_divisor(self): return self.constraints_config.volumetric_divisor if hasattr(self, 'constraints_config') else 5000
+    @volumetric_divisor.setter
+    def volumetric_divisor(self, v):
+        if hasattr(self, 'constraints_config'): self.constraints_config.volumetric_divisor = v; self.constraints_config.save()
+
+
+
 
     # The raw JSON - source of truth for engine, updated by fields below
     legacy_rate_card_backup = models.JSONField(help_text="Backup of legacy JSON logic", blank=True, default=dict)
@@ -100,7 +274,8 @@ class Courier(models.Model):
             "max_weight": self.max_weight,
             "volumetric_divisor": self.volumetric_divisor,
             "logic": "Zonal", # Default
-            "required_source_city": self.legacy_rate_card_backup.get("required_source_city"), 
+            "required_source_city": self.required_source_city or self.legacy_rate_card_backup.get("required_source_city"), 
+            "hub_pincode_prefixes": self.hub_pincode_prefixes,
             "fuel_config": {
                 "is_dynamic": self.fuel_is_dynamic,
                 "base_diesel_price": self.fuel_base_price,
@@ -133,6 +308,48 @@ class Courier(models.Model):
                 "door_delivery_slabs": []
             } 
         }
+
+        # --- FACADE FACELIFT START ---
+        # Prioritize normalized tables over legacy columns
+        fees = getattr(self, 'fees_config', None)
+        if fees:
+            data["fixed_fees"]["docket_fee"] = fees.docket_fee
+            data["fixed_fees"]["eway_bill_fee"] = fees.eway_bill_fee
+            data["fixed_fees"]["cod_fixed"] = fees.cod_fixed
+            data["fixed_fees"]["appointment_delivery"] = fees.appointment_delivery_fee
+            
+            data["variable_fees"]["cod_percent"] = fees.cod_percent
+            data["variable_fees"]["hamali_per_kg"] = fees.hamali_per_kg
+            data["variable_fees"]["min_hamali"] = fees.min_hamali
+            data["variable_fees"]["fov_insured_percent"] = fees.fov_insured_percent
+            data["variable_fees"]["fov_uninsured_percent"] = fees.fov_uninsured_percent
+            data["variable_fees"]["fov_min"] = fees.fov_min
+            data["variable_fees"]["damage_claim_percent"] = fees.damage_claim_percent
+
+        constraints = getattr(self, 'constraints_config', None)
+        if constraints:
+            data["min_weight"] = constraints.min_weight
+            data["max_weight"] = constraints.max_weight
+            data["volumetric_divisor"] = constraints.volumetric_divisor
+            data["required_source_city"] = constraints.required_source_city
+
+        fuel = getattr(self, 'fuel_config_obj', None)
+        if fuel:
+            data["fuel_config"]["is_dynamic"] = fuel.is_dynamic
+            data["fuel_config"]["base_diesel_price"] = fuel.base_price
+            data["fuel_config"]["diesel_ratio"] = fuel.ratio
+            data["fuel_config"]["flat_percent"] = fuel.surcharge_percent
+
+        routing = getattr(self, 'routing_config', None)
+        if routing:
+             legacy_logic_map = {
+                 "City_To_City": "city_to_city",
+                 "Zonal_Standard": "Zonal",
+                 "Zonal_Custom": "Zonal",
+                 "Region_CSV": "pincode_region_csv"
+             }
+             data['logic'] = legacy_logic_map.get(routing.logic_type, 'Zonal')
+        # --- FACADE FACELIFT END ---
 
         # Logic Mapping
         if self.rate_logic == 'City_To_City':
@@ -182,11 +399,41 @@ class Courier(models.Model):
 
         elif self.rate_logic == 'Region_CSV':
             data['logic'] = 'pincode_region_csv'
-            if self.serviceable_pincode_csv:
-                 data['routing_logic']['csv_file'] = self.serviceable_pincode_csv
-            pass
+            # Set the type field for zones.py logic detection
+            data['routing_logic']['type'] = 'pincode_region_csv'
+            # Set csv_file with fallback to BlueDart default
+            csv_file = self.serviceable_pincode_csv or "BlueDart_Serviceable Pincodes.csv"
+            data['routing_logic']['csv_file'] = csv_file
+            # Set forward_rates from CourierZoneRate table
+            data['forward_rates'] = fwd_rates
 
-        return data
+        # --- LEGACY BACKUP MERGE (Global) ---
+        # Merge legacy backup data (EDL config, variable fees, etc.) for ALL logic types
+        # This allows injecting custom fields like 'owners_risk' that aren't in the normalized DB yet.
+        if self.legacy_rate_card_backup:
+            for key in ['edl_config', 'edl_matrix', 'variable_fees', 'fixed_fees']:
+                if key in self.legacy_rate_card_backup:
+                    if key == 'variable_fees':
+                        # Merge with existing variable_fees
+                        if 'variable_fees' not in data: data['variable_fees'] = {}
+                        data['variable_fees'].update(self.legacy_rate_card_backup[key])
+                    elif key == 'fixed_fees':
+                        # Merge with existing fixed_fees
+                        if 'fixed_fees' not in data: data['fixed_fees'] = {}
+                        data['fixed_fees'].update(self.legacy_rate_card_backup[key])
+                    else:
+                        data[key] = self.legacy_rate_card_backup[key]
+
+        def cast_decimal(obj):
+            if isinstance(obj, Decimal):
+                return float(obj)
+            if isinstance(obj, dict):
+                return {k: cast_decimal(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [cast_decimal(v) for v in obj]
+            return obj
+
+        return cast_decimal(data)
 
     def _sync_custom_zones_to_json(self):
         # Deprecated
@@ -216,7 +463,7 @@ class CityRoute(models.Model):
     """City-to-City routing rates"""
     courier = models.ForeignKey(Courier, on_delete=models.CASCADE, related_name='city_routes')
     city_name = models.CharField(max_length=100, verbose_name="City/Destination")
-    rate_per_kg = models.FloatField(verbose_name="Rate (per kg)")
+    rate_per_kg = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), verbose_name="Rate (per kg)")
     
     class Meta:
         db_table = 'city_routes'
@@ -232,7 +479,7 @@ class DeliverySlab(models.Model):
     courier = models.ForeignKey(Courier, on_delete=models.CASCADE, related_name='delivery_slabs')
     min_weight = models.FloatField(verbose_name="Min Weight")
     max_weight = models.FloatField(verbose_name="Max Weight", null=True, blank=True)
-    rate = models.FloatField(verbose_name="Flat Rate")
+    rate = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Flat Rate")
     
     class Meta:
         db_table = 'delivery_slabs'
@@ -262,7 +509,7 @@ class CustomZoneRate(models.Model):
     courier = models.ForeignKey(Courier, on_delete=models.CASCADE, related_name='custom_zone_rates')
     from_zone = models.CharField(max_length=20, verbose_name="From Zone")
     to_zone = models.CharField(max_length=20, verbose_name="To Zone")
-    rate_per_kg = models.FloatField(verbose_name="Rate (per kg)")
+    rate_per_kg = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), verbose_name="Rate (per kg)")
     
     class Meta:
         db_table = 'custom_zone_rates'
@@ -409,9 +656,10 @@ class FTLOrder(models.Model):
 
     # Location Details
     source_city = models.CharField(max_length=100)
-    source_address = models.TextField(default='Address not provided')
+    source_address = models.TextField(blank=True, null=True)
     source_pincode = models.IntegerField()
     destination_city = models.CharField(max_length=100)
+    destination_address = models.TextField(blank=True, null=True)
     destination_pincode = models.IntegerField()
 
     # Container Details
@@ -546,7 +794,7 @@ class CourierZoneRate(models.Model):
     courier = models.ForeignKey(Courier, on_delete=models.CASCADE, related_name='zone_rates')
     zone_code = models.CharField(max_length=20, help_text="Zone Code (e.g. z_a, z_b, north, south)")
     rate_type = models.CharField(max_length=20, choices=RateType.choices, default=RateType.FORWARD)
-    rate = models.FloatField(default=0.0, verbose_name="Rate (₹)")
+    rate = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), verbose_name="Rate (₹)")
     
     class Meta:
         db_table = 'courier_zone_rates'

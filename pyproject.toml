@@ -140,6 +140,7 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 testpaths = ["courier/tests"]
+norecursedirs = ["scripts"]
 addopts = [
     "-v",
     "--tb=short",

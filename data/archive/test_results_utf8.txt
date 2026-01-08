@@ -1,0 +1,16 @@
+﻿Total active couriers: 15
+[FAIL] ACPL Surface 50kg         Logic: City_To_City    Total:        0 Error: Cities not identified in service list
+[PASS] ATS Surface 0.5kg         Logic: Zonal_Standard  Total:   713.78 Error: None
+[FAIL] Blue Dart                 Logic: Region_CSV      Total:        0 Error: Service only available from bhiwandi
+[PASS] DTDC Air 0.5kg            Logic: Zonal_Standard  Total:   538.73 Error: None
+[PASS] DTDC Surface 0.5kg        Logic: Zonal_Standard  Total:   538.73 Error: None
+[PASS] Delhivery Air 0.5kg       Logic: Zonal_Standard  Total:   922.76 Error: None
+[PASS] Delhivery Surface 0.5kg   Logic: Zonal_Standard  Total:   865.77 Error: None
+[PASS] Delhivery Surface 10kg    Logic: Zonal_Standard  Total:   359.61 Error: None
+[PASS] Delhivery Surface 20kg    Logic: Zonal_Standard  Total:   569.94 Error: None
+[PASS] Delhivery Surface 2kg     Logic: Zonal_Standard  Total:   317.54 Error: None
+[PASS] Delhivery Surface 5kg     Logic: Zonal_Standard  Total:   303.97 Error: None
+[PASS] Ekart Air 0.5kg           Logic: Zonal_Standard  Total:    533.3 Error: None
+[PASS] Ekart Surface 0.5kg       Logic: Zonal_Standard  Total:    533.3 Error: None
+[PASS] Shadowfax Surface 0.5kg   Logic: Zonal_Standard  Total:   717.51 Error: None
+[PASS] V-Trans 100kg             Logic: Zonal_Custom    Total:   958.75 Error: None

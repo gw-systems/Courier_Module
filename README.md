@@ -16,7 +16,24 @@ A high-performance, production-ready logistics engine built with **Django** and 
     - Additional weight increments.
     - **COD Logic**: "Higher of" fixed fee vs. percentage of order value.
     - **Taxation**: Integrated 18% GST (configurable).
-- **Industry Grade Performance**: Implements O(1) dictionary-based lookups for microsecond response times.
+
+## 🧠 Carrier Logic Models
+
+The engine supports three distinct routing/pricing models:
+
+1.  **Standard Zonal Priority** (Default)
+    - Resolves Zones based on hierarchy: Local (A) -> State (B) -> Metro (C) -> National (D) -> Special (E).
+    - Used for standard zonal carriers.
+
+2.  **City-to-City Logic** (ACPL)
+    - Implements direct point-to-point routing logic.
+    - Uses `ACPL_Serviceable_Pincodes.csv` to map specific source-destination pairs (e.g., Bhiwandi <-> Serviceable City).
+    - Supports bidirectional routing checks.
+
+3.  **Carrier-Specific Zones** (BlueDart, V-Trans)
+    - **BlueDart**: Uses Region-based mapping via `BlueDart_Serviceable Pincodes.csv` to determine unique zones (e.g., Zone 1, Zone 2).
+    - **V-Trans**: Implements custom zonal definitions specific to the carrier's network structure.
+
 - **Order Management**: Full CRUD operations for logistics order tracking.
 - **Admin Analytics**: Advanced reporting with revenue, profit margins, and carrier performance metrics.
 
@@ -42,7 +59,11 @@ Courier_Module/
 ├── courier/                     # Main Django app
 │   ├── models.py                # Django ORM models
 │   ├── serializers.py           # DRF serializers
-│   ├── views.py                 # API views and viewsets
+│   ├── views/                   # API ViewSets
+│   │   ├── admin.py             # Admin endpoints
+│   │   ├── orders.py            # Order management
+│   │   ├── public.py            # Public facing APIs
+│   │   └── ...
 │   ├── urls.py                  # App URL routing
 │   ├── permissions.py           # Custom permissions
 │   ├── authentication.py        # Admin token auth
@@ -50,7 +71,7 @@ Courier_Module/
 │   ├── engine.py                # Calculation logic (GST, COD, Slabs)
 │   ├── zones.py                 # Pincode & Zone Resolution Logic
 │   ├── config/                  # JSON Configuration Files
-│   │   ├── settings.json
+
 │   │   ├── metro_cities.json
 │   │   └── special_states.json
 │   └── data/                    # Reference Data
@@ -194,7 +215,9 @@ Edit `courier/config/metro_cities.json` without touching core Python logic.
 
 ### Update System Settings
 
-Edit `courier/config/settings.json` to change:
+### Update System Settings
+
+Edit `config/settings.py` (look for `COURIER_BUSINESS_RULES`) to change:
 - GST Rate
 - Escalation Rate (Profit Margin)
 - Default Weight Slab
@@ -277,8 +300,4 @@ For issues or questions, please check:
 - Django Admin interface for data management
 - Application logs at `app.log`
 
----
 
-**Developed with ❤️ for Logistics Efficiency**
-
-Migrated to Django for enterprise integration and scalability.

@@ -2,7 +2,27 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Sum, Count
 from .models import Order, OrderStatus, PaymentMode, FTLOrder, Courier, CourierZoneRate, CityRoute, CustomZone, CustomZoneRate, DeliverySlab, SystemConfig
+from .models_refactored import FeeStructure, ServiceConstraints, FuelConfiguration, RoutingLogic
 
+class FeeStructureInline(admin.StackedInline):
+    model = FeeStructure
+    verbose_name = "Fee Structure Configuration"
+    can_delete = False
+
+class ServiceConstraintsInline(admin.StackedInline):
+    model = ServiceConstraints
+    verbose_name = "Service Constraints"
+    can_delete = False
+
+class FuelConfigurationInline(admin.StackedInline):
+    model = FuelConfiguration
+    verbose_name = "Fuel Surcharge Configuration"
+    can_delete = False
+
+class RoutingLogicInline(admin.StackedInline):
+    model = RoutingLogic
+    verbose_name = "Routing Logic Config"
+    can_delete = False
 
 class CourierZoneRateInline(admin.TabularInline):
     model = CourierZoneRate
@@ -47,394 +67,38 @@ class DeliverySlabInline(admin.TabularInline):
 
 @admin.register(Courier)
 class CourierAdmin(admin.ModelAdmin):
-    list_display = ['name', 'carrier_type', 'carrier_mode', 'rate_logic', 'is_active', 'updated_at']
-    list_filter = ['is_active', 'carrier_type', 'carrier_mode', 'rate_logic']
+    # Only show main fields, hide legacy big list
+    list_display = ['name', 'is_active', 'updated_at']
+    list_filter = ['is_active']
     search_fields = ['name']
     
+    inlines = [
+        FeeStructureInline,
+        ServiceConstraintsInline,
+        FuelConfigurationInline,
+        RoutingLogicInline,
+        # Conditional inlines are tricky if not dynamic, but we can just add them all 
+        # or keep the get_inlines logic from before but appended
+    ]
+
     def get_inlines(self, request, obj=None):
         """Show different inlines based on routing logic"""
-        if obj and obj.rate_logic == 'City_To_City':
-            return [CityRouteInline, DeliverySlabInline]
-        elif obj and obj.rate_logic == 'Zonal_Custom':
-            return [CustomZoneInline, CustomZoneRateInline]
-        elif obj and obj.rate_logic == 'Zonal_Standard':
-            return [CourierZoneRateInline]
-        return []
-    
-    def get_fieldsets(self, request, obj=None):
-        """Show different fieldsets based on routing logic"""
-        basic_fieldsets = [
-            ('Basic Configuration', {
-                'fields': (
-                    ('name', 'is_active'),
-                    ('carrier_type', 'carrier_mode', 'rate_logic')
-                ),
-                'description': '<b>Step 1:</b> Select the routing logic type and configure basic settings.'
-            }),
-            ('Weight & Dimensions', {
-                'fields': (
-                    ('min_weight', 'max_weight'),
-                    'volumetric_divisor',
-                )
-            }),
-            ('Fixed Fees', {
-                'fields': (
-                    ('docket_fee', 'eway_bill_fee'),
-                    ('appointment_delivery_fee', 'cod_charge_fixed'),
-                )
-            }),
-            ('Variable Fees', {
-                'fields': (
-                    ('cod_charge_percent', 'fuel_surcharge_percent'),
-                    ('hamali_per_kg', 'min_hamali'),
-                    ('fov_insured_percent', 'fov_uninsured_percent', 'fov_min'),
-                    'damage_claim_percent'
-                )
-            }),
-            ('Dynamic Fuel Surcharge', {
-                'classes': ('collapse',),
-                'fields': (
-                    ('fuel_is_dynamic', 'fuel_base_price', 'fuel_ratio'),
-                ),
-                'description': 'Configure valid only if using Dynamic Fuel Surcharge logic.'
-            }),
+        default_inlines = [
+            FeeStructureInline,
+            ServiceConstraintsInline,
+            FuelConfigurationInline,
+            RoutingLogicInline
         ]
         
-        # Add routing-specific fieldsets descriptions
-        if obj and obj.rate_logic == 'Zonal_Standard':
-            basic_fieldsets.append(
-                ('Standard Zonal Rates', {
-                    'fields': (),
-                    'description': '<b>Step 2:</b> Scroll down to manage rates for Standard Zones (A-F) using the inline table.'
-                })
-            )
-        elif obj and obj.rate_logic == 'City_To_City':
-            basic_fieldsets.append(
-                ('City Routes Configuration', {
-                    'fields': (),
-                    'description': '<b>Step 2:</b> Scroll down to add city routes AND delivery slabs using the forms below.'
-                })
-            )
+        # We need to check obj.routing_config.logic_type if moved, or obj.rate_logic fallback using property
+        # For now assume legacy column usage for logic checking
+        if obj and obj.rate_logic == 'City_To_City':
+            return default_inlines + [CityRouteInline, DeliverySlabInline]
         elif obj and obj.rate_logic == 'Zonal_Custom':
-            basic_fieldsets.append(
-                ('Custom Zone Configuration', {
-                    'fields': (),
-                    'description': '<b>Step 2:</b> Scroll down to define zone mappings and zone matrix rates using the forms below.'
-                })
-            )
-        
-        # Advanced section (always present)
-        basic_fieldsets.append(
-            ('Advanced Configuration', {
-                'classes': ('collapse',),
-                'fields': ('legacy_rate_card_backup',),
-                'description': '<b>Legacy Backup:</b> This contains the old JSON map. It is no longer synonymous with the active rates.'
-            })
-        )
-        
-        return basic_fieldsets
-
-    def save_related(self, request, form, formsets, change):
-        """
-        Override to ensure JSON sync happens AFTER inlines are saved.
-        Standard save_model happens BEFORE inlines, so new inlines aren't in the DB yet.
-        """
-        super().save_related(request, form, formsets, change)
-        
-        # Re-sync JSON if applicable
-        obj = form.instance
-        if obj.pk:
-            if obj.rate_logic == 'City_To_City':
-                obj._sync_city_routes_to_json()
-            elif obj.rate_logic == 'Zonal_Custom':
-                obj._sync_custom_zones_to_json()
-
-
-
-@admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-    """Django Admin configuration for Order model"""
-
-    list_display = [
-        'order_number', 'recipient_name', 'recipient_contact',
-        'status_badge', 'carrier', 'mode', 'total_cost_display', 'created_at'
-    ]
-
-    list_filter = [
-        'status', 'payment_mode', 'carrier',
-        'mode', 'created_at', 'booked_at'
-    ]
-
-    search_fields = [
-        'order_number', 'recipient_name', 'recipient_contact',
-        'recipient_email', 'awb_number', 'sender_name'
-    ]
-
-    readonly_fields = [
-        'order_number', 'volumetric_weight', 'applicable_weight',
-        'created_at', 'updated_at', 'booked_at', 'cost_breakdown'
-    ]
-
-    fieldsets = (
-        ('Order Information', {
-            'fields': ('order_number', 'status', 'notes')
-        }),
-        ('Recipient Details', {
-            'fields': (
-                'recipient_name', 'recipient_contact', 'recipient_email',
-                'recipient_address', 'recipient_pincode', 'recipient_city',
-                'recipient_state', 'recipient_phone'
-            )
-        }),
-        ('Sender Details', {
-            'fields': (
-                'sender_name', 'sender_pincode', 'sender_address', 'sender_phone'
-            )
-        }),
-        ('Package Details', {
-            'fields': (
-                'weight', 'length', 'width', 'height',
-                'volumetric_weight', 'applicable_weight'
-            )
-        }),
-        ('Item Details', {
-            'fields': (
-                'item_type', 'sku', 'quantity', 'item_amount'
-            )
-        }),
-        ('Payment', {
-            'fields': ('payment_mode', 'order_value')
-        }),
-        ('Shipping Details', {
-            'fields': (
-                'carrier', 'mode', 'zone_applied',
-                'total_cost', 'cost_breakdown', 'awb_number'
-            )
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at', 'booked_at'),
-            'classes': ('collapse',)
-        }),
-    )
-
-    date_hierarchy = 'created_at'
-    ordering = ['-created_at']
-    list_per_page = 50
-    actions = ['mark_as_booked', 'mark_as_cancelled']
-
-    def status_badge(self, obj):
-        """Display status as colored badge"""
-        colors = {
-            'draft': '#6c757d',
-            'booked': '#007bff',
-            'manifested': '#17a2b8',
-            'picked_up': '#ffc107',
-            'out_for_delivery': '#fd7e14',
-            'delivered': '#28a745',
-            'cancelled': '#dc3545',
-            'pickup_exception': '#e83e8c',
-            'ndr': '#6f42c1',
-            'rto': '#dc3545',
-        }
-        color = colors.get(obj.status, '#6c757d')
-        return format_html(
-            '<span style="background-color:{}; color:white; padding:3px 8px; border-radius:3px; font-size:11px;">{}</span>',
-            color, obj.get_status_display()
-        )
-    status_badge.short_description = 'Status'
-    status_badge.admin_order_field = 'status'
-
-    def total_cost_display(self, obj):
-        """Display cost with currency formatting"""
-        if obj.total_cost:
-            formatted = '₹{:,.2f}'.format(float(obj.total_cost))
-            return format_html('{}', formatted)
-        return '-'
-    total_cost_display.short_description = 'Total Cost'
-    total_cost_display.admin_order_field = 'total_cost'
-
-    def has_delete_permission(self, request, obj=None):
-        # Only allow deletion of DRAFT orders
-        if obj and obj.status != OrderStatus.DRAFT:
-            return False
-        return super().has_delete_permission(request, obj)
-
-    @admin.action(description='Mark selected orders as BOOKED')
-    def mark_as_booked(self, request, queryset):
-        updated = queryset.filter(status=OrderStatus.DRAFT).update(status=OrderStatus.BOOKED)
-        self.message_user(request, f'{updated} order(s) marked as booked.')
-
-    @admin.action(description='Mark selected orders as PICKED UP')
-    def mark_as_picked_up(self, request, queryset):
-        updated = queryset.filter(status__in=[OrderStatus.BOOKED, OrderStatus.MANIFESTED]).update(status=OrderStatus.PICKED_UP)
-        self.message_user(request, f'{updated} order(s) marked as picked up.')
-
-    @admin.action(description='Mark selected orders as IN TRANSIT')
-    def mark_as_in_transit(self, request, queryset):
-        # Note: IN TRANSIT is often same as PICKED_UP in this system, or implies movement
-        # Assuming we treat 'out_for_delivery' or custom status? 
-        # The choices has: PICKED_UP (Picked Up / In Transit).
-        # So "In Transit" effectively means PICKED_UP here if there's no strict distinction.
-        # But wait, user asked for "in transit". The text choice says "Picked Up / In Transit".
-        # Let's map it to PICKED_UP for now or allow updating from other states.
-        updated = queryset.exclude(status__in=[OrderStatus.DRAFT, OrderStatus.CANCELLED, OrderStatus.DELIVERED]).update(status=OrderStatus.PICKED_UP)
-        self.message_user(request, f'{updated} order(s) marked as in transit.')
-
-    @admin.action(description='Mark selected orders as DELIVERED')
-    def mark_as_delivered(self, request, queryset):
-        updated = queryset.exclude(status__in=[OrderStatus.DRAFT, OrderStatus.CANCELLED]).update(status=OrderStatus.DELIVERED)
-        self.message_user(request, f'{updated} order(s) marked as delivered.')
-
-    @admin.action(description='Mark selected orders as CANCELLED')
-    def mark_as_cancelled(self, request, queryset):
-        updated = queryset.exclude(
-            status__in=[OrderStatus.DELIVERED, OrderStatus.PICKED_UP]
-        ).update(status=OrderStatus.CANCELLED)
-        self.message_user(request, f'{updated} order(s) marked as cancelled.')
-
-
-@admin.register(FTLOrder)
-class FTLOrderAdmin(admin.ModelAdmin):
-    """Django Admin configuration for FTL Order model"""
-
-    list_display = [
-        'order_number', 'name', 'phone', 'source_city', 'destination_city',
-        'container_type', 'status_badge', 'total_price_display', 'created_at'
-    ]
-
-    list_filter = [
-        'status', 'container_type', 'source_city', 'destination_city',
-        'created_at', 'booked_at'
-    ]
-
-    search_fields = [
-        'order_number', 'name', 'phone', 'email', 'source_city', 'destination_city'
-    ]
-
-    readonly_fields = [
-        'order_number', 'base_price', 'escalation_amount',
-        'price_with_escalation', 'gst_amount', 'total_price',
-        'created_at', 'updated_at', 'booked_at'
-    ]
-
-    fieldsets = (
-        ('Order Information', {
-            'fields': ('order_number', 'status', 'notes')
-        }),
-        ('Customer Details', {
-            'fields': ('name', 'email', 'phone')
-        }),
-        ('Route Details', {
-            'fields': (
-                ('source_city', 'source_pincode'),
-                'source_address',
-                ('destination_city', 'destination_pincode')
-            )
-        }),
-        ('Container & Pricing', {
-            'fields': (
-                'container_type',
-                ('base_price', 'escalation_amount'),
-                ('price_with_escalation', 'gst_amount'),
-                'total_price'
-            )
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at', 'booked_at'),
-            'classes': ('collapse',)
-        }),
-    )
-
-    date_hierarchy = 'created_at'
-    ordering = ['-created_at']
-    list_per_page = 50
-    actions = [
-        'mark_as_booked', 'mark_as_picked_up', 'mark_as_delivered', 'mark_as_cancelled'
-    ]
-
-    def status_badge(self, obj):
-        """Display status as colored badge"""
-        colors = {
-            'draft': '#6c757d',
-            'booked': '#007bff',
-            'manifested': '#17a2b8',
-            'picked_up': '#ffc107',
-            'out_for_delivery': '#fd7e14',
-            'delivered': '#28a745',
-            'cancelled': '#dc3545',
-        }
-        color = colors.get(obj.status, '#6c757d')
-        return format_html(
-            '<span style="background-color:{}; color:white; padding:3px 8px; border-radius:3px; font-size:11px;">{}</span>',
-            color, obj.get_status_display()
-        )
-    status_badge.short_description = 'Status'
-    status_badge.admin_order_field = 'status'
-
-    def total_price_display(self, obj):
-        """Display price with currency formatting"""
-        if obj.total_price:
-            formatted = '₹{:,.2f}'.format(float(obj.total_price))
-            return format_html('{}', formatted)
-        return '-'
-    total_price_display.short_description = 'Total Price'
-    total_price_display.admin_order_field = 'total_price'
-
-    def has_delete_permission(self, request, obj=None):
-        # Only allow deletion of DRAFT or CANCELLED orders
-        if obj and obj.status not in [OrderStatus.DRAFT, OrderStatus.CANCELLED]:
-            return False
-        return super().has_delete_permission(request, obj)
-
-    @admin.action(description='Mark selected orders as BOOKED')
-    def mark_as_booked(self, request, queryset):
-        updated = queryset.filter(status=OrderStatus.DRAFT).update(status=OrderStatus.BOOKED)
-        self.message_user(request, f'{updated} FTL order(s) marked as booked.')
-
-    @admin.action(description='Mark selected orders as IN TRANSIT')
-    def mark_as_picked_up(self, request, queryset):
-        updated = queryset.filter(status=OrderStatus.BOOKED).update(status=OrderStatus.PICKED_UP)
-        self.message_user(request, f'{updated} FTL order(s) marked as in transit.')
-
-    @admin.action(description='Mark selected orders as DELIVERED')
-    def mark_as_delivered(self, request, queryset):
-        updated = queryset.exclude(status__in=[OrderStatus.DRAFT, OrderStatus.CANCELLED]).update(status=OrderStatus.DELIVERED)
-        self.message_user(request, f'{updated} FTL order(s) marked as delivered.')
-
-    @admin.action(description='Mark selected orders as CANCELLED')
-    def mark_as_cancelled(self, request, queryset):
-        updated = queryset.filter(status=OrderStatus.DRAFT).update(status=OrderStatus.CANCELLED)
-        self.message_user(request, f'{updated} FTL order(s) marked as cancelled.')
-
-
-# Customize admin site header
-admin.site.site_header = 'LogiRate Admin'
-admin.site.site_title = 'LogiRate Admin Portal'
-admin.site.index_title = 'Order & Carrier Management'
-
-
-@admin.register(SystemConfig)
-class SystemConfigAdmin(admin.ModelAdmin):
-    list_display = ['__str__', 'diesel_price_current', 'gst_rate', 'escalation_rate']
-    fieldsets = (
-        ('Fuel Configuration', {
-            'fields': ('diesel_price_current', 'base_diesel_price', 'fuel_surcharge_ratio')
-        }),
-        ('Financial Configuration', {
-            'fields': ('gst_rate', 'escalation_rate')
-        }),
-        ('Defaults', {
-            'fields': ('default_servicable_csv',)
-        }),
-    )
-
-    def has_add_permission(self, request):
-        # Only allow one instance
-        if self.model.objects.exists():
-            return False
-        return super().has_add_permission(request)
-
-    def has_delete_permission(self, request, obj=None):
-        # Disallow deleting the config
-        return False
-
+            return default_inlines + [CustomZoneInline, CustomZoneRateInline]
+        elif obj and obj.rate_logic == 'Zonal_Standard':
+            return default_inlines + [CourierZoneRateInline]
+        return default_inlines
+    
+    # We remove the fieldsets that referenced legacy fields because they will error if fields are deleted
+    # Instead rely on Inlines

@@ -18,7 +18,7 @@ import sqlite3
 from pathlib import Path
 
 # Setup Django
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
@@ -41,7 +41,7 @@ import json
 
 def get_sqlite_connection():
     """Connect to the SQLite database"""
-    sqlite_path = BASE_DIR / 'logistics.db'
+    sqlite_path = BASE_DIR / 'data' / 'logistics.db'
     if not sqlite_path.exists():
         print(f"ERROR: SQLite database not found at {sqlite_path}")
         sys.exit(1)

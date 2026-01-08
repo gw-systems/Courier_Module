@@ -5,19 +5,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import RedirectView
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
     SpectacularRedocView
 )
+from courier import views
 
 urlpatterns = [
     # Django admin
     path("django-admin/", admin.site.urls),
 
-    # Root redirect to static dashboard
-    path("", RedirectView.as_view(url='/static/dashboard.html', permanent=False)),
+    # Dashboard (Django template)
+    path("", views.rate_calculator_view, name='rate-calculator'),
+    path("dashboard/", views.dashboard_view, name='dashboard-explicit'),
 
     # API endpoints
     path("api/", include(('courier.urls', 'courier'), namespace='courier')),

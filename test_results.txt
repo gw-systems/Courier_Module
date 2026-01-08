@@ -1,5 +1,0 @@
-=== ACPL ROUTING TESTS ===
-Test 1 (Bhiwandi->Gandhidham): ('gandhidham', 'City Match: gandhidham (from hub)', 'city_specific')
-Test 2 (Bhiwandi->Kakinada): (None, 'Destination Pincode Not Serviceable', 'city_specific')
-Test 3 (Gandhidham->Bhiwandi): ('gandhidham', 'City Match: gandhidham (to hub)', 'city_specific')
-Test 4 (Kakinada->Bhiwandi): (None, 'Source Pincode Not Serviceable', 'city_specific')

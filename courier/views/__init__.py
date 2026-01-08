@@ -7,6 +7,8 @@ Re-exports all view functions and classes for URL routing.
 from .public import (
     health_check,
     root_redirect,
+    dashboard_view,
+    rate_calculator_view,
     compare_rates,
     lookup_pincode,
 )
@@ -52,6 +54,8 @@ __all__ = [
     # Public
     'health_check',
     'root_redirect',
+    'dashboard_view',
+    'rate_calculator_view',
     'compare_rates',
     'lookup_pincode',
     # Orders

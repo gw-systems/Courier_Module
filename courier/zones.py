@@ -96,7 +96,7 @@ def is_metro(location_dict):
 # --- 5. CSV REGION LOGIC (Generic) ---
 CSV_CACHE = {}
 
-def get_csv_region_details(pincode: int, csv_filename: str = "BlueDart_Servicable Pincodes.csv"):
+def get_csv_region_details(pincode: int, csv_filename: str = "BlueDart_Serviceable Pincodes.csv"):
     global CSV_CACHE
     
     # Key by filename
@@ -149,7 +149,7 @@ def get_zone(source_pincode: int, dest_pincode: int, carrier_config: dict):
 
     # --- LOGIC 4: CSV REGION (Blue Dart / Others) ---
     if logic_type == "pincode_region_csv":
-         csv_file = routing.get("csv_file", "BlueDart_Servicable Pincodes.csv")
+         csv_file = routing.get("csv_file", "BlueDart_Serviceable Pincodes.csv")
          details = get_csv_region_details(dest_pincode, csv_file)
          if not details:
               return None, "Pincode Not Found in Carrier DB", logic_type
@@ -206,14 +206,14 @@ def get_zone(source_pincode: int, dest_pincode: int, carrier_config: dict):
         source_is_hub = source_city == hub_city if source_city else False
         dest_is_hub = dest_city == hub_city if dest_city else False
         
-        # New Logic: Just check if we can identify the cities.
-        if source_city and dest_city:
-             # Return valid zone_id for lookup (we use dest_city as key usually? or source_city? 
-             # Matrix uses Origin/Dest tuple. City Specific usually uses just Dest?
-             # existing logic returned dest_city if source was hub.
-             # If we want Pune -> Mumbai, we need to return 'mumbai' as zone_id?
-             # And ensure rate card has 'mumbai'.
-             return dest_city, f"City Match: {source_city} -> {dest_city}", "city_specific"
+        # Validate that we can identify both cities AND one of them is the hub
+        if source_city and dest_city and (source_is_hub or dest_is_hub):
+            # Return the NON-HUB city as zone_id for rate card lookup
+            # Rate card is keyed by serviceable cities (e.g., 'gandhidham'), not the hub
+            # This enables bidirectional routing: both Bhiwandi->Gandhidham and Gandhidham->Bhiwandi
+            # will return 'gandhidham' as the zone_id
+            serviceable_city = dest_city if source_is_hub else source_city
+            return serviceable_city, f"City Route: {source_city} <-> {dest_city}", "city_specific"
         
         return None, "Cities not identified in service list", "city_specific"
 

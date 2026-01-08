@@ -13,6 +13,7 @@ ENV/
 # Django
 *.log
 db.sqlite3
+logistics.db
 logistics.db-journal
 staticfiles/
 media/

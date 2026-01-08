@@ -7,6 +7,14 @@ from .models import Order, OrderStatus, PaymentMode, FTLOrder
 import re
 
 
+class BoxSerializer(serializers.Serializer):
+    """Schema for individual boxes in a shipment"""
+    weight = serializers.FloatField(min_value=0.01)
+    length = serializers.FloatField(min_value=0.1)
+    width = serializers.FloatField(min_value=0.1)
+    height = serializers.FloatField(min_value=0.1)
+
+
 class RateRequestSerializer(serializers.Serializer):
     """Rate comparison request"""
     source_pincode = serializers.IntegerField(
@@ -19,10 +27,17 @@ class RateRequestSerializer(serializers.Serializer):
         max_value=999999,
         help_text="6-digit destination pincode"
     )
+    # Weight is optional if orders list is provided
     weight = serializers.FloatField(
         min_value=0.01,
         max_value=999.99,
+        required=False,
         help_text="Weight in kg"
+    )
+    orders = serializers.ListField(
+        child=BoxSerializer(),
+        required=False,
+        help_text="List of boxes/orders in the shipment"
     )
     is_cod = serializers.BooleanField(default=False)
     order_value = serializers.FloatField(default=0.0, min_value=0)
@@ -30,6 +45,12 @@ class RateRequestSerializer(serializers.Serializer):
         choices=['Both', 'Surface', 'Air'],
         default='Both'
     )
+
+    def validate(self, data):
+        """Ensure either total weight or list of orders is provided"""
+        if not data.get('weight') and not data.get('orders'):
+            raise serializers.ValidationError("Either 'weight' or 'orders' must be provided.")
+        return data
 
 
 class CostBreakdownSerializer(serializers.Serializer):
@@ -204,7 +225,7 @@ class FTLOrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'order_number', 'name', 'email', 'phone',
             'source_city', 'source_address', 'source_pincode',
-            'destination_city', 'destination_pincode',
+            'destination_city', 'destination_address', 'destination_pincode',
             'container_type', 'base_price', 'escalation_amount', 'price_with_escalation',
             'gst_amount', 'total_price', 'status', 'created_at', 'updated_at', 'notes'
         ]
@@ -241,11 +262,16 @@ class FTLOrderSerializer(serializers.ModelSerializer):
     def validate_source_address(self, value):
         if value:
             value = value.strip()
-            if not value:
-                raise serializers.ValidationError('Source address cannot be empty')
-            if len(value) < 10:
+            if value and len(value) < 10:
                 raise serializers.ValidationError('Source address must be at least 10 characters long')
-        return value
+        return value if value else None
+
+    def validate_destination_address(self, value):
+        if value:
+            value = value.strip()
+            if value and len(value) < 10:
+                raise serializers.ValidationError('Destination address must be at least 10 characters long')
+        return value if value else None
 
     def validate_source_pincode(self, value):
         if not (100000 <= value <= 999999):

@@ -1,6 +1,7 @@
 #!/bin/bash
 # Quick start script for Django Courier Module
 
+cd "$(dirname "$0")/.."
 echo "🚀 Starting Django Courier Module..."
 echo ""
 

@@ -8,13 +8,7 @@ from courier.models import SystemConfig
 
 
 # Configure module logger
-logger = logging.getLogger('courier')
-
-# Configure module logger
-logger = logging.getLogger('courier')
-
 # Global settings are now fetched from SystemConfig model
-
 
 
 class CostCalculator:
@@ -35,12 +29,12 @@ class CostCalculator:
             is_cod (bool, optional): Whether payment mode is COD. Defaults to False.
             order_value (float, optional): Declared value of the shipment. Defaults to 0.
         """
-        self.weight = weight
+        self.weight = float(weight)
         self.source_pincode = source_pincode
         self.dest_pincode = dest_pincode
         self.carrier_data = carrier_data
         self.is_cod = is_cod
-        self.order_value = order_value
+        self.order_value = float(order_value)
         
         # State extracted during calculation
         self.zone_id: Optional[str] = None
@@ -102,20 +96,50 @@ class CostCalculator:
         return True
 
     def _validate_source_city(self, required_source):
-        """Helper to check source city restrictions (e.g. Bhiwandi only)"""
-        s_loc = zones.get_location_details(self.source_pincode)
+        """
+        Validate source city restrictions (e.g. Bhiwandi-only carriers).
+        
+        For bidirectional city-specific routing (e.g., ACPL), validates that
+        EITHER the source OR destination is the required hub city.
+        
+        Uses two methods of validation:
+        1. Location database city name matching
+        2. Hub pincode prefix matching (from carrier configuration)
+        """
+        routing_logic = self.carrier_data.get("routing_logic", {})
+        is_city_specific = routing_logic.get("is_city_specific", False)
+        
+        # For city-specific bidirectional routing, check if EITHER endpoint is the hub
+        if is_city_specific:
+            source_match = self._check_city_match(self.source_pincode, required_source)
+            dest_match = self._check_city_match(self.dest_pincode, required_source)
+            return source_match or dest_match
+        
+        # For other carriers, only check source
+        return self._check_city_match(self.source_pincode, required_source)
+    
+    def _check_city_match(self, pincode, required_city):
+        """Helper to check if a pincode matches the required city."""
+        loc = zones.get_location_details(pincode)
         match = False
         
-        # Check 1: Location Data
-        if s_loc:
-             city = s_loc.get("city", "").lower()
-             if required_source.lower() in city:
+        # Check 1: Location Data (city name matching)
+        if loc:
+             city = loc.get("city", "").lower()
+             if required_city.lower() in city:
                  match = True
         
-        # Check 2: Fallback Pincodes (Bhiwandi)
-        if not match and required_source.lower() == "bhiwandi":
-             if str(self.source_pincode).startswith("4213"): 
-                 match = True
+        # Check 2: Hub Pincode Prefixes (from database)
+        if not match:
+            hub_city = self.carrier_data.get("routing_logic", {}).get("hub_city")
+            if hub_city and required_city.lower() == hub_city.lower():
+                hub_prefixes = self.carrier_data.get("hub_pincode_prefixes", [])
+                if hub_prefixes and isinstance(hub_prefixes, list):
+                    pin_str = str(pincode)
+                    for prefix in hub_prefixes:
+                        if pin_str.startswith(str(prefix)):
+                            match = True
+                            break
                  
         return match
 
@@ -444,7 +468,9 @@ class CostCalculator:
         }
 
 
-# Legacy Wrapper to maintain backward compatibility
+
+# Backward-compatible wrapper function (Adapter Pattern)
+# Existing code uses this functional API. New code can use CostCalculator directly.
 def calculate_cost(
     weight: float,
     source_pincode: int,
@@ -454,7 +480,10 @@ def calculate_cost(
     order_value: float = 0,
 ) -> Dict[str, Any]:
     """
-    Wrapper function to calculate shipping cost.
+    Calculate shipping cost for a carrier.
+    
+    This function provides a backward-compatible functional interface to the
+    CostCalculator class. It's maintained for existing code compatibility.
     
     Args:
         weight (float): Weight in kg.
@@ -465,9 +494,14 @@ def calculate_cost(
         order_value (float): Value of the order.
 
     Returns:
-        Dict[str, Any]: Calculation result.
+        Dict[str, Any]: Calculation result with total_cost, breakdown, and serviceable status.
+        
+    Note:
+        New implementations should consider using CostCalculator directly
+        for better testability and clearer object-oriented design.
     """
     calculator = CostCalculator(
         weight, source_pincode, dest_pincode, carrier_data, is_cod, order_value
     )
     return calculator.calculate()
+

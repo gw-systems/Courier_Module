@@ -1,0 +1,16 @@
+﻿DB: ACPL Surface 50kg: Mode='Surface', Source='bhiwandi', Active=True
+DB: ATS Surface 0.5kg: Mode='Surface', Source='None', Active=True
+DB: Blue Dart: Mode='Surface', Source='bhiwandi', Active=True
+DB: DTDC Air 0.5kg: Mode='Air', Source='None', Active=True
+DB: DTDC Surface 0.5kg: Mode='Surface', Source='None', Active=True
+DB: Delhivery Air 0.5kg: Mode='Air', Source='None', Active=True
+DB: Delhivery Surface 0.5kg: Mode='Surface', Source='None', Active=True
+DB: Delhivery Surface 10kg: Mode='Surface', Source='None', Active=True
+DB: Delhivery Surface 20kg: Mode='Surface', Source='None', Active=True
+DB: Delhivery Surface 2kg: Mode='Surface', Source='None', Active=True
+DB: Delhivery Surface 5kg: Mode='Surface', Source='None', Active=True
+DB: Ekart Air 0.5kg: Mode='Air', Source='None', Active=True
+DB: Ekart Surface 0.5kg: Mode='Surface', Source='None', Active=True
+DB: Shadowfax Surface 0.5kg: Mode='Surface', Source='None', Active=True
+DB: V-Trans 100kg: Mode='Surface', Source='None', Active=True
+DB: testcustomzones: Mode='Surface', Source='None', Active=False

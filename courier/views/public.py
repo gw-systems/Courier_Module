@@ -7,12 +7,13 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework import status
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 
 from .base import (
     load_rates, logger, RateRequestSerializer,
     get_zone_column, PINCODE_LOOKUP, calculate_cost
 )
+from django.conf import settings
 from courier.serializers import RateRequestSerializer
 from courier.engine import calculate_cost
 from courier.zones import get_zone_column, PINCODE_LOOKUP
@@ -31,11 +32,21 @@ def health_check(request):
     })
 
 
+def dashboard_view(request):
+    """Render the main dashboard (Django template)"""
+    return render(request, 'dashboard.html', {'section': 'dashboard'})
+
+
+def rate_calculator_view(request):
+    """Render the dashboard with rate calculator active by default"""
+    return render(request, 'dashboard.html', {'section': 'rate-calculator'})
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def root_redirect(request):
     """Redirect to dashboard"""
-    return redirect('/static/dashboard.html')
+    return redirect('/dashboard/')
 
 
 @api_view(['POST'])
@@ -52,6 +63,24 @@ def compare_rates(request):
         data['dest_pincode']
     )
 
+    # Calculate Total Weight
+    if data.get('orders'):
+        # Multi-box logic
+        try:
+            # Load Volumetric Divisor from Config
+            vol_divisor = settings.COURIER_BUSINESS_RULES.get('VOLUMETRIC_DIVISOR', 5000)
+        except Exception:
+            vol_divisor = 5000 # Fallback
+
+        total_weight = 0
+        for box in data['orders']:
+            vol_weight = (box['length'] * box['width'] * box['height']) / vol_divisor
+            applicable = max(box['weight'], vol_weight)
+            total_weight += applicable
+    else:
+        # Legacy single weight logic
+        total_weight = data['weight']
+
     rates = load_rates()
     results = []
 
@@ -66,7 +95,7 @@ def compare_rates(request):
 
         try:
             res = calculate_cost(
-                weight=data['weight'],
+                weight=total_weight,
                 source_pincode=data['source_pincode'],
                 dest_pincode=data['dest_pincode'],
                 carrier_data=carrier,
@@ -81,14 +110,17 @@ def compare_rates(request):
             logger.error(f"CALCULATION_ERROR: Carrier {carrier.get('carrier_name')} failed. Error: {str(e)}")
             continue
 
-    if not results:
-        logger.warning(f"No carriers matched for mode: {data['mode']}")
+    # Filter out non-servicable carriers before sorting
+    valid_results = [r for r in results if r.get("servicable")]
+
+    if not valid_results:
+        logger.warning(f"No serviceable carriers matched for mode: {data['mode']}")
         return Response(
-            {"detail": f"No active carriers found for mode '{data['mode']}'."},
+            {"detail": f"No serviceable carriers found for this route."},
             status=status.HTTP_404_NOT_FOUND
         )
 
-    return Response(sorted(results, key=lambda x: x["total_cost"]))
+    return Response(sorted(valid_results, key=lambda x: x["total_cost"]))
 
 
 @api_view(['GET'])
